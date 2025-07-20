@@ -158,10 +158,8 @@ const App = (): JSX.Element => {
   const [showAddForm, setShowAddForm] = useState<boolean>(false);
   const [editingTask, setEditingTask] = useState<EditingTask | null>(null);
   const [expandedTasks, setExpandedTasks] = useState<Set<number>>(new Set());
-  const [filterBy, setFilterBy] = useState<FilterBy>("all");
-  const [selectedProjectId, setSelectedProjectId] = useState<number | null>(
-    null
-  );
+  const [filterBy] = useState<FilterBy>("all");
+  const [selectedProjectId] = useState<number | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [showProjectForm, setShowProjectForm] = useState<boolean>(false);
   const [newProject, setNewProject] = useState({
