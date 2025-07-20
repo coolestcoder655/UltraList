@@ -12,6 +12,8 @@ import {
   Focus,
   Brain,
   ChevronDown,
+  ChevronRight,
+  Check,
 } from "lucide-react";
 
 interface PomodoroViewProps {
@@ -19,6 +21,7 @@ interface PomodoroViewProps {
   projects: Project[];
   isDarkMode: boolean;
   onStartEdit: (task: Task) => void;
+  onToggleSubtask: (taskId: string, subtaskId: string) => void;
   getTagColor: (tag: string) => string;
   priorityColors: {
     low: string;
@@ -53,6 +56,7 @@ const PomodoroView: React.FC<PomodoroViewProps> = ({
   projects,
   isDarkMode,
   onStartEdit,
+  onToggleSubtask,
   getTagColor,
   priorityColors,
 }) => {
@@ -66,6 +70,7 @@ const PomodoroView: React.FC<PomodoroViewProps> = ({
   const [selectedTimerType, setSelectedTimerType] =
     useState<TimerType>("pomodoro");
   const [showTimerDropdown, setShowTimerDropdown] = useState(false);
+  const [expandedTasks, setExpandedTasks] = useState<Set<string>>(new Set());
 
   // Settings
   const [settings, setSettings] = useState<PomodoroSettings>({
@@ -81,6 +86,17 @@ const PomodoroView: React.FC<PomodoroViewProps> = ({
     projects.find((p) => p.id === projectId);
 
   const incompleteTasks = tasks.filter((task) => !task.completed);
+
+  // Toggle subtask expansion
+  const toggleTaskExpansion = (taskId: string) => {
+    const newExpanded = new Set(expandedTasks);
+    if (newExpanded.has(taskId)) {
+      newExpanded.delete(taskId);
+    } else {
+      newExpanded.add(taskId);
+    }
+    setExpandedTasks(newExpanded);
+  };
 
   // Timer type definitions
   const timerTypes: TimerTypeInfo[] = [
@@ -338,6 +354,97 @@ const PomodoroView: React.FC<PomodoroViewProps> = ({
             >
               {project.name}
             </span>
+          </div>
+        )}
+
+        {/* Subtasks progress */}
+        {task.subtasks.length > 0 && (
+          <div className="mb-2">
+            <div className="flex items-center justify-between mb-1">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  toggleTaskExpansion(task.id);
+                }}
+                className={`flex items-center gap-1 text-xs ${
+                  isDarkMode
+                    ? "text-gray-400 hover:text-gray-300"
+                    : "text-gray-600 hover:text-gray-700"
+                }`}
+              >
+                {expandedTasks.has(task.id) ? (
+                  <ChevronDown size={12} />
+                ) : (
+                  <ChevronRight size={12} />
+                )}
+                {task.subtasks.filter((st) => st.completed).length}/
+                {task.subtasks.length} subtasks
+              </button>
+            </div>
+            <div
+              className={`w-full rounded-full h-1 ${
+                isDarkMode ? "bg-gray-600" : "bg-gray-200"
+              }`}
+            >
+              <div
+                className="bg-blue-500 h-1 rounded-full transition-all"
+                style={{
+                  width: `${
+                    task.subtasks.length > 0
+                      ? (task.subtasks.filter((st) => st.completed).length /
+                          task.subtasks.length) *
+                        100
+                      : 0
+                  }%`,
+                }}
+              />
+            </div>
+          </div>
+        )}
+
+        {/* Expanded subtasks */}
+        {expandedTasks.has(task.id) && task.subtasks.length > 0 && (
+          <div className="mt-2 space-y-1">
+            {task.subtasks.map((subtask) => (
+              <div
+                key={subtask.id}
+                className="flex items-center gap-2"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <button
+                  onClick={() => {
+                    console.log("=== POMODORO SUBTASK CLICK ===");
+                    console.log("Task ID:", task.id);
+                    console.log("Subtask ID:", subtask.id);
+                    console.log("Subtask object:", subtask);
+                    console.log("About to call onToggleSubtask");
+                    onToggleSubtask(task.id, subtask.id);
+                  }}
+                  className={`w-3 h-3 rounded border flex items-center justify-center ${
+                    subtask.completed
+                      ? "bg-blue-500 border-blue-500 text-white"
+                      : isDarkMode
+                      ? "border-gray-500 hover:border-blue-400"
+                      : "border-gray-300 hover:border-blue-400"
+                  }`}
+                >
+                  {subtask.completed && <Check size={8} />}
+                </button>
+                <span
+                  className={`text-xs ${
+                    subtask.completed
+                      ? isDarkMode
+                        ? "line-through text-gray-500"
+                        : "line-through text-gray-400"
+                      : isDarkMode
+                      ? "text-gray-300"
+                      : "text-gray-700"
+                  }`}
+                >
+                  {subtask.text}
+                </span>
+              </div>
+            ))}
           </div>
         )}
 

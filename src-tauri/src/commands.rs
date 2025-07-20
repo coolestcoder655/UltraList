@@ -176,13 +176,18 @@ pub async fn toggle_subtask_completion(
 ) -> Result<(), String> {
     let db = db.lock().map_err(|e| format!("Database lock error: {}", e))?;
     
+    println!("Attempting to toggle subtask with ID: {}", subtask_id);
+    
     // Get existing subtask (we need to reconstruct it with updated completion)
     // This is a bit inefficient but works with the current structure
     let tasks = db.get_all_tasks().map_err(|e| format!("Failed to get tasks: {}", e))?;
     
     for task_with_details in tasks {
+        println!("Checking task: {} with {} subtasks", task_with_details.task.id, task_with_details.subtasks.len());
         for subtask in task_with_details.subtasks {
+            println!("  Subtask ID: {}, Text: {}", subtask.id, subtask.text);
             if subtask.id == subtask_id {
+                println!("Found matching subtask! Updating completion to: {}", completed);
                 let updated_subtask = Subtask {
                     id: subtask.id,
                     task_id: subtask.task_id,
@@ -195,6 +200,7 @@ pub async fn toggle_subtask_completion(
         }
     }
     
+    println!("Subtask with ID {} not found in any task!", subtask_id);
     Err("Subtask not found".to_string())
 }
 

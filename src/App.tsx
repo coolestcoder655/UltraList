@@ -273,17 +273,64 @@ const App = (): JSX.Element => {
     taskId: string,
     subtaskId: string
   ): Promise<void> => {
+    console.log("=== SUBTASK TOGGLE DEBUG ===");
+    console.log("handleToggleSubtask called with:", { taskId, subtaskId });
+    console.log(
+      "All tasks:",
+      tasks.map((t) => ({
+        id: t.id,
+        title: t.title,
+        subtaskCount: t.subtasks.length,
+      }))
+    );
+
     const task = tasks.find((t) => t.id === taskId);
+    console.log("Found task:", task ? task.title : "null");
+
     if (task) {
+      console.log(
+        "Task subtasks:",
+        task.subtasks.map((st) => ({
+          id: st.id,
+          text: st.text,
+          completed: st.completed,
+        }))
+      );
       const subtask = task.subtasks.find((st) => st.id === subtaskId);
+      console.log("Found subtask:", subtask);
+
       if (subtask) {
+        console.log("Subtask details:", {
+          id: subtask.id,
+          text: subtask.text,
+          currentCompletion: subtask.completed,
+        });
+        console.log("Will call toggleSubtaskCompletion with:", {
+          subtaskId: subtask.id,
+          newCompletion: !subtask.completed,
+        });
         try {
           await toggleSubtaskCompletion(subtask.id, !subtask.completed);
+          console.log("Successfully toggled subtask completion");
         } catch (error) {
           console.error("Failed to toggle subtask:", error);
+          console.error("Error details:", JSON.stringify(error, null, 2));
         }
+      } else {
+        console.error("Subtask not found in task:", subtaskId);
+        console.error(
+          "Available subtask IDs:",
+          task.subtasks.map((st) => st.id)
+        );
       }
+    } else {
+      console.error("Task not found:", taskId);
+      console.error(
+        "Available task IDs:",
+        tasks.map((t) => t.id)
+      );
     }
+    console.log("=== END SUBTASK TOGGLE DEBUG ===");
   };
 
   const handleDeleteTask = async (id: string): Promise<void> => {
@@ -498,6 +545,7 @@ const App = (): JSX.Element => {
                 projects={projects}
                 isDarkMode={isDarkMode}
                 onStartEdit={startEdit}
+                onToggleSubtask={handleToggleSubtask}
                 getTagColor={getTagColor}
                 priorityColors={priorityColors}
               />
