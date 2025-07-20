@@ -3,7 +3,6 @@ import Header from "./components/Header";
 import SearchBar from "./components/SearchBar";
 import AddTaskForm from "./components/AddTaskForm";
 import ProjectManagement from "./components/ProjectManagement";
-import SavedSearchList from "./components/SavedSearchList";
 import TaskList from "./components/TaskList";
 import type {
   Task as TaskType,
@@ -17,7 +16,6 @@ import type {
   Project,
   Folder,
   TaskTemplate,
-  SavedSearch,
 } from "./types";
 import "./App.css";
 
@@ -110,36 +108,6 @@ const App = (): JSX.Element => {
     },
   ]);
 
-  const [savedSearches, setSavedSearches] = useState<SavedSearch[]>([
-    {
-      id: 1,
-      name: "Urgent Work Tasks",
-      tags: ["urgent"],
-      priority: "high",
-      projectId: 1,
-      completed: false,
-    },
-    {
-      id: 2,
-      name: "Health & Wellness",
-      tags: ["health"],
-      projectId: 3,
-      completed: false,
-    },
-    {
-      id: 3,
-      name: "Overdue Items",
-      tags: [],
-      filterBy: "overdue",
-    },
-    {
-      id: 4,
-      name: "Today's Tasks",
-      tags: [],
-      filterBy: "today",
-    },
-  ]);
-
   const [tasks, setTasks] = useState<TaskType[]>([
     {
       id: 1,
@@ -194,8 +162,6 @@ const App = (): JSX.Element => {
   const [selectedProjectId, setSelectedProjectId] = useState<number | null>(
     null
   );
-  const [activeSavedSearch, setActiveSavedSearch] =
-    useState<SavedSearch | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [showProjectForm, setShowProjectForm] = useState<boolean>(false);
   const [newProject, setNewProject] = useState({
@@ -435,33 +401,6 @@ const App = (): JSX.Element => {
     setEditingTask(null);
   };
 
-  const applySavedSearch = (search: SavedSearch): void => {
-    setActiveSavedSearch(search);
-
-    // Apply saved search filters
-    if (search.projectId) {
-      setSelectedProjectId(search.projectId);
-    } else {
-      setSelectedProjectId(null);
-    }
-
-    if (search.filterBy) {
-      setFilterBy(search.filterBy);
-    } else if (search.priority) {
-      setFilterBy(search.priority === "high" ? "high" : "all");
-    } else if (search.completed !== undefined) {
-      setFilterBy(search.completed ? "completed" : "incomplete");
-    } else {
-      setFilterBy("all");
-    }
-  };
-
-  const clearSavedSearch = (): void => {
-    setActiveSavedSearch(null);
-    setFilterBy("all");
-    setSelectedProjectId(null);
-  };
-
   // Project and Folder Management Functions
   const addProject = (): void => {
     if (!newProject.name.trim()) return;
@@ -540,35 +479,6 @@ const App = (): JSX.Element => {
 
   const deleteTemplate = (id: number): void => {
     setTemplates(templates.filter((t) => t.id !== id));
-  };
-
-  // Saved Search Management Functions
-  const saveCurrentSearch = (): void => {
-    const name = prompt("Enter a name for this saved search:");
-    if (!name) return;
-
-    const search: SavedSearch = {
-      id: Date.now(),
-      name,
-      tags: [], // Could be enhanced to include current tag filters
-      priority: filterBy === "high" ? "high" : undefined,
-      projectId: selectedProjectId || undefined,
-      filterBy: filterBy !== "all" ? filterBy : undefined,
-      completed:
-        filterBy === "completed"
-          ? true
-          : filterBy === "incomplete"
-          ? false
-          : undefined,
-    };
-    setSavedSearches([...savedSearches, search]);
-  };
-
-  const deleteSavedSearch = (id: number): void => {
-    setSavedSearches(savedSearches.filter((s) => s.id !== id));
-    if (activeSavedSearch?.id === id) {
-      clearSavedSearch();
-    }
   };
 
   const isOverdue = (dateString: string): boolean => {
@@ -693,32 +603,6 @@ const App = (): JSX.Element => {
       return false;
     }
 
-    // Apply saved search tag filtering
-    if (activeSavedSearch && activeSavedSearch.tags.length > 0) {
-      const hasMatchingTag = activeSavedSearch.tags.some((searchTag) =>
-        task.tags.includes(searchTag)
-      );
-      if (!hasMatchingTag) return false;
-    }
-
-    // Apply saved search priority filtering
-    if (
-      activeSavedSearch &&
-      activeSavedSearch.priority &&
-      task.priority !== activeSavedSearch.priority
-    ) {
-      return false;
-    }
-
-    // Apply saved search completion filtering
-    if (
-      activeSavedSearch &&
-      activeSavedSearch.completed !== undefined &&
-      task.completed !== activeSavedSearch.completed
-    ) {
-      return false;
-    }
-
     // Then apply other filters (only if no search query)
     if (!searchQuery.trim()) {
       if (filterBy === "completed") return task.completed;
@@ -788,29 +672,12 @@ const App = (): JSX.Element => {
               <SearchBar
                 searchQuery={searchQuery}
                 setSearchQuery={setSearchQuery}
-                savedSearches={savedSearches}
-                activeSavedSearch={activeSavedSearch}
-                onApplySavedSearch={applySavedSearch}
-                onClearSavedSearch={clearSavedSearch}
-                onSaveCurrentSearch={saveCurrentSearch}
                 parseSearchQuery={parseSearchQuery}
                 isDarkMode={isDarkMode}
                 tasks={tasks}
                 projects={projects}
               />
             </div>
-
-            {/* Saved Search Management */}
-            <SavedSearchList
-              savedSearches={savedSearches}
-              projects={projects}
-              onApplySavedSearch={(filterBy, projectId) => {
-                setFilterBy(filterBy);
-                setSelectedProjectId(projectId);
-              }}
-              onDeleteSavedSearch={deleteSavedSearch}
-              isDarkMode={isDarkMode}
-            />
 
             {/* Add Task Form */}
             <AddTaskForm

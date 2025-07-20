@@ -1,15 +1,10 @@
 import React, { useState, useRef, useEffect } from "react";
-import { Search, X, Plus } from "lucide-react";
-import type { SavedSearch, Task, Project } from "../types";
+import { Search, X } from "lucide-react";
+import type { Task, Project } from "../types";
 
 interface SearchBarProps {
   searchQuery: string;
   setSearchQuery: (query: string) => void;
-  savedSearches: SavedSearch[];
-  activeSavedSearch: SavedSearch | null;
-  onApplySavedSearch: (search: SavedSearch) => void;
-  onClearSavedSearch: () => void;
-  onSaveCurrentSearch: () => void;
   parseSearchQuery: (query: string) => any;
   isDarkMode: boolean;
   tasks: Task[];
@@ -19,11 +14,6 @@ interface SearchBarProps {
 const SearchBar: React.FC<SearchBarProps> = ({
   searchQuery,
   setSearchQuery,
-  savedSearches,
-  activeSavedSearch,
-  onApplySavedSearch,
-  onClearSavedSearch,
-  onSaveCurrentSearch,
   parseSearchQuery,
   isDarkMode,
   tasks,
@@ -130,11 +120,6 @@ const SearchBar: React.FC<SearchBarProps> = ({
     setShowSecondaryDropdown(false);
     setPendingPrefix("");
     setSecondaryOptions([]);
-
-    // Clear saved search when typing
-    if (activeSavedSearch) {
-      onClearSavedSearch();
-    }
   };
 
   // Handle suggestion selection
@@ -142,13 +127,18 @@ const SearchBar: React.FC<SearchBarProps> = ({
     const filterTypes = ["priority", "project", "status", "due"];
 
     if (filterTypes.includes(suggestion)) {
-      // This is a filter type, show secondary dropdown
+      // This is a filter type, auto-complete with colon and show secondary dropdown
+      const words = searchQuery.split(" ");
+      words[words.length - 1] = `${suggestion}:`;
+      setSearchQuery(words.join(" "));
+
       setPendingPrefix(suggestion);
       const options = getSecondaryOptions(suggestion);
       setSecondaryOptions(options);
       setShowSecondaryDropdown(true);
       setShowSuggestions(false);
       setActiveSecondaryIndex(0);
+      inputRef.current?.focus();
     } else {
       // This is a direct suggestion (like a tag), apply it immediately
       const words = searchQuery.split(" ");
@@ -261,7 +251,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
           <input
             ref={inputRef}
             type="text"
-            placeholder="Search tasks... (try: #urgent, priority:high, project:work, status:completed, due:today)"
+            placeholder="Search tasks..."
             value={searchQuery}
             onChange={handleInputChange}
             onKeyDown={handleKeyDown}
@@ -394,63 +384,6 @@ const SearchBar: React.FC<SearchBarProps> = ({
             </div>
           )}
         </div>
-      </div>
-
-      {/* Saved Searches and other filters */}
-      <div className="flex flex-wrap gap-2 items-center">
-        <select
-          value={activeSavedSearch?.id || ""}
-          onChange={(e: React.ChangeEvent<HTMLSelectElement>) => {
-            const searchId = e.target.value;
-            if (searchId === "") {
-              onClearSavedSearch();
-            } else {
-              const search = savedSearches.find(
-                (s) => s.id === parseInt(searchId)
-              );
-              if (search) {
-                onApplySavedSearch(search);
-                setSearchQuery(""); // Clear search when applying saved search
-              }
-            }
-          }}
-          className={`border rounded-lg px-3 py-2 ${
-            isDarkMode
-              ? "border-gray-600 bg-gray-700 text-white"
-              : "border-gray-300 bg-white"
-          }`}
-        >
-          <option value="">Saved Searches</option>
-          {savedSearches.map((search) => (
-            <option key={search.id} value={search.id}>
-              {search.name}
-            </option>
-          ))}
-        </select>
-        {activeSavedSearch && (
-          <button
-            onClick={onClearSavedSearch}
-            className={`px-3 py-2 rounded-lg transition-colors ${
-              isDarkMode
-                ? "bg-gray-600 hover:bg-gray-500 text-white"
-                : "bg-gray-500 hover:bg-gray-600 text-white"
-            }`}
-            title="Clear saved search"
-          >
-            <X size={16} />
-          </button>
-        )}
-        <button
-          onClick={onSaveCurrentSearch}
-          className={`px-3 py-2 rounded-lg transition-colors ${
-            isDarkMode
-              ? "bg-green-600 hover:bg-green-700 text-white"
-              : "bg-green-500 hover:bg-green-600 text-white"
-          }`}
-          title="Save current filters as search"
-        >
-          <Plus size={16} />
-        </button>
       </div>
 
       {/* Active search filters display */}

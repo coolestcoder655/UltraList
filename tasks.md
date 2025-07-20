@@ -1,1 +1,1 @@
-- [ ] Add auto complete to the smart search bar.
+- [x] Add auto complete to the smart search bar.
