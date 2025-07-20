@@ -128,6 +128,7 @@ const App = (): JSX.Element => {
   };
 
   const startEdit = (task: TaskType): void => {
+    // Create a deep copy to avoid reference issues
     setEditingTask({
       ...task,
       subtasks: task.subtasks.map((st: Subtask) => st.text),
@@ -138,6 +139,14 @@ const App = (): JSX.Element => {
     if (!editingTask?.title.trim()) return;
 
     try {
+      // Check if the task still exists in the current tasks list
+      const currentTask = tasks.find((t) => t.id === editingTask.id);
+      if (!currentTask) {
+        console.error("Task no longer exists, canceling edit");
+        setEditingTask(null);
+        return;
+      }
+
       await updateTask(editingTask.id, {
         title: editingTask.title,
         description: editingTask.description,
@@ -150,6 +159,8 @@ const App = (): JSX.Element => {
       setEditingTask(null);
     } catch (error) {
       console.error("Failed to update task:", error);
+      // Reset editing task on failure to prevent further issues
+      setEditingTask(null);
     }
   };
 
@@ -380,15 +391,13 @@ const App = (): JSX.Element => {
 
   return (
     <div
-      className={`min-h-screen p-4 transition-colors ${
-        isDarkMode
-          ? "bg-gradient-to-br from-gray-900 to-gray-800"
-          : "bg-gradient-to-br from-blue-50 to-indigo-100"
+      className={`min-h-screen transition-all duration-500 ease-in-out ${
+        isDarkMode ? "bg-gray-900" : "bg-gray-50"
       }`}
     >
-      <div className="max-w-4xl mx-auto">
+      <div className="h-full">
         <div
-          className={`rounded-2xl shadow-xl overflow-hidden ${
+          className={`h-full transition-all duration-300 ${
             isDarkMode ? "bg-gray-800" : "bg-white"
           }`}
         >
@@ -401,10 +410,12 @@ const App = (): JSX.Element => {
             onViewModeChange={setViewMode}
           />
 
-          <div className={`p-6 ${isDarkMode ? "bg-gray-800" : "bg-white"}`}>
+          <div
+            className={`p-4 sm:p-6 ${isDarkMode ? "bg-gray-800" : "bg-white"}`}
+          >
             {/* Search and Filters - Only show for list view */}
             {viewMode === "list" && (
-              <div className="space-y-4 mb-6">
+              <div className="space-y-4 mb-6 animate-fadeIn">
                 <SearchBar
                   searchQuery={searchQuery}
                   setSearchQuery={setSearchQuery}

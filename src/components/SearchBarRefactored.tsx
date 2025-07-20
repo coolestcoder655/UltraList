@@ -322,7 +322,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
   };
 
   return (
-    <div className="relative w-full">
+    <div className="relative w-full max-w-2xl mx-auto">
       {/* Search Bar */}
       <div className="relative">
         <SearchInput
@@ -344,28 +344,19 @@ const SearchBar: React.FC<SearchBarProps> = ({
 
         {/* Active Filters Display */}
         {isSearchMode && Object.keys(activeFilters).length > 0 && (
-          <div className="mt-3 animate-fadeIn">
-            <div className="flex flex-wrap gap-2">
-              {Object.entries(activeFilters).map(([key, value], index) => (
-                <span
-                  key={key}
-                  className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium transition-all duration-300 transform hover:scale-105 ${
-                    isDarkMode
-                      ? "bg-blue-900 text-blue-200 border border-blue-700"
-                      : "bg-blue-100 text-blue-800 border border-blue-200"
-                  }`}
-                  style={{
-                    animationDelay: `${index * 100}ms`,
-                    animation: "slideInUp 0.4s ease-out forwards",
-                  }}
-                >
-                  <span className="font-semibold">{key}:</span>
-                  <span className="ml-1">
-                    {Array.isArray(value) ? value.join(", ") : String(value)}
-                  </span>
-                </span>
-              ))}
-            </div>
+          <div className="mt-2 flex flex-wrap gap-2">
+            {Object.entries(activeFilters).map(([key, value]) => (
+              <span
+                key={key}
+                className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                  isDarkMode
+                    ? "bg-blue-900 text-blue-200"
+                    : "bg-blue-100 text-blue-800"
+                }`}
+              >
+                {key}: {Array.isArray(value) ? value.join(", ") : String(value)}
+              </span>
+            ))}
           </div>
         )}
 
@@ -393,37 +384,26 @@ const SearchBar: React.FC<SearchBarProps> = ({
           secondaryOptions.length > 0 && (
             <div
               ref={secondaryRef}
-              className={`absolute z-[100] w-full mb-2 bottom-full border rounded-lg shadow-lg max-h-60 overflow-y-auto transform transition-all duration-300 ease-out animate-slideInUp ${
+              className={`absolute z-[100] w-full mb-2 bottom-full border rounded-lg shadow-lg max-h-60 overflow-y-auto ${
                 isDarkMode
-                  ? "bg-gray-800 border-gray-600 shadow-xl"
-                  : "bg-white border-gray-300 shadow-xl"
+                  ? "bg-gray-800 border-gray-600"
+                  : "bg-white border-gray-300"
               }`}
             >
               {secondaryOptions.map((option, index) => (
                 <button
                   key={option}
                   onClick={() => applySecondaryOption(option)}
-                  className={`w-full px-4 py-3 text-left transition-all duration-200 transform hover:scale-[1.02] ${
+                  className={`w-full px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-700 ${
                     index === activeSecondaryIndex
-                      ? isDarkMode
-                        ? "bg-blue-600 text-white shadow-md"
-                        : "bg-blue-500 text-white shadow-md"
-                      : "hover:bg-gray-100 dark:hover:bg-gray-700"
+                      ? "bg-gray-100 dark:bg-gray-700"
+                      : ""
                   } ${index === 0 ? "rounded-t-lg" : ""} ${
                     index === secondaryOptions.length - 1 ? "rounded-b-lg" : ""
                   }`}
-                  style={{
-                    animationDelay: `${index * 50}ms`,
-                  }}
                 >
                   <span
-                    className={`${
-                      index === activeSecondaryIndex
-                        ? "text-white"
-                        : isDarkMode
-                        ? "text-white"
-                        : "text-gray-900"
-                    }`}
+                    className={`${isDarkMode ? "text-white" : "text-gray-900"}`}
                   >
                     {option}
                   </span>

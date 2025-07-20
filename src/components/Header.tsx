@@ -1,5 +1,15 @@
 import React from "react";
-import { Plus, FolderPlus, Moon, Sun, List, Columns, BarChart3, Grid3X3, Timer } from "lucide-react";
+import {
+  Plus,
+  FolderPlus,
+  Moon,
+  Sun,
+  List,
+  Columns,
+  BarChart3,
+  Grid3X3,
+  Timer,
+} from "lucide-react";
 import { ViewMode } from "../types";
 
 interface HeaderProps {
@@ -46,14 +56,18 @@ const Header: React.FC<HeaderProps> = ({
           </div>
           <button
             onClick={onToggleDarkMode}
-            className={`p-2 rounded-lg transition-colors ${
+            className={`p-2 rounded-lg transition-all duration-300 hover:scale-110 ${
               isDarkMode
-                ? "bg-gray-600 hover:bg-gray-500"
-                : "bg-blue-500 hover:bg-blue-400"
+                ? "bg-gray-600 hover:bg-gray-500 border border-gray-500 hover:border-gray-400"
+                : "bg-blue-500 hover:bg-blue-400 border border-blue-400 hover:border-blue-300"
             }`}
             title={`Switch to ${isDarkMode ? "light" : "dark"} mode`}
           >
-            {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
+            {isDarkMode ? (
+              <Sun size={20} className="text-yellow-300" />
+            ) : (
+              <Moon size={20} className="text-white" />
+            )}
           </button>
         </div>
       </div>
@@ -63,10 +77,10 @@ const Header: React.FC<HeaderProps> = ({
         <div className="flex flex-wrap gap-4 mb-6">
           <button
             onClick={onShowAddForm}
-            className={`px-4 py-2 rounded-lg flex items-center gap-2 transition-colors ${
+            className={`px-4 py-2 rounded-lg flex items-center gap-2 transition-all duration-300 hover:scale-105 transform ${
               isDarkMode
-                ? "bg-blue-600 hover:bg-blue-700 text-white"
-                : "bg-blue-500 hover:bg-blue-600 text-white"
+                ? "bg-blue-600 hover:bg-blue-700 text-white shadow-lg hover:shadow-xl"
+                : "bg-blue-500 hover:bg-blue-600 text-white shadow-lg hover:shadow-xl"
             }`}
           >
             <Plus size={16} />
@@ -75,10 +89,10 @@ const Header: React.FC<HeaderProps> = ({
 
           <button
             onClick={onShowProjectForm}
-            className={`px-4 py-2 rounded-lg flex items-center gap-2 transition-colors ${
+            className={`px-4 py-2 rounded-lg flex items-center gap-2 transition-all duration-300 hover:scale-105 transform ${
               isDarkMode
-                ? "bg-purple-600 hover:bg-purple-700 text-white"
-                : "bg-purple-500 hover:bg-purple-600 text-white"
+                ? "bg-purple-600 hover:bg-purple-700 text-white shadow-lg hover:shadow-xl"
+                : "bg-purple-500 hover:bg-purple-600 text-white shadow-lg hover:shadow-xl"
             }`}
           >
             <FolderPlus size={16} />
@@ -88,7 +102,11 @@ const Header: React.FC<HeaderProps> = ({
 
         {/* View Mode Selector */}
         <div className="mb-4">
-          <h3 className={`text-sm font-medium mb-3 ${isDarkMode ? "text-gray-300" : "text-gray-700"}`}>
+          <h3
+            className={`text-sm font-medium mb-3 ${
+              isDarkMode ? "text-gray-300" : "text-gray-700"
+            }`}
+          >
             View Mode
           </h3>
           <div className="flex flex-wrap gap-2">
@@ -96,14 +114,14 @@ const Header: React.FC<HeaderProps> = ({
               <button
                 key={mode}
                 onClick={() => onViewModeChange(mode)}
-                className={`px-3 py-2 rounded-lg flex items-center gap-2 text-sm transition-colors ${
+                className={`px-3 py-2 rounded-lg flex items-center gap-2 text-sm transition-all duration-300 hover:scale-105 transform ${
                   viewMode === mode
                     ? isDarkMode
-                      ? "bg-blue-600 text-white"
-                      : "bg-blue-500 text-white"
+                      ? "bg-blue-600 text-white shadow-lg"
+                      : "bg-blue-500 text-white shadow-lg"
                     : isDarkMode
-                    ? "bg-gray-700 text-gray-300 hover:bg-gray-600"
-                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                    ? "bg-gray-700 text-gray-300 hover:bg-gray-600 hover:shadow-md"
+                    : "bg-gray-100 text-gray-700 hover:bg-gray-200 hover:shadow-md"
                 }`}
               >
                 <Icon size={14} />
