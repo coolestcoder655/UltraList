@@ -23,6 +23,8 @@ export class NaturalLanguageParser {
     today: /\b(today)\b/i,
     tomorrow: /\b(tomorrow)\b/i,
     nextWeek: /\b(next week)\b/i,
+    thisWeekend: /\b(this weekend)\b/i,
+    nextWeekend: /\b(next weekend)\b/i,
     
     // Days of week
     monday: /\b(next\s+)?monday\b/i,
@@ -36,6 +38,7 @@ export class NaturalLanguageParser {
     // Specific date formats
     dateSlash: /\b(\d{1,2})\/(\d{1,2})(?:\/(\d{2,4}))?\b/,
     dateDash: /\b(\d{1,2})-(\d{1,2})(?:-(\d{2,4}))?\b/,
+    dateDot: /\b(\d{1,2})\.(\d{1,2})(?:\.(\d{2,4}))?\b/,
   };
 
   private static readonly TIME_PATTERNS = {
@@ -125,6 +128,18 @@ export class NaturalLanguageParser {
       tomorrow.setDate(tomorrow.getDate() + 1);
       date = tomorrow.toISOString().split('T')[0];
       cleanText = cleanText.replace(this.DATE_PATTERNS.tomorrow, '').trim();
+    } else if (this.DATE_PATTERNS.thisWeekend.test(text)) {
+      const saturday = this.getNextWeekday(6); // Saturday
+      date = saturday.toISOString().split('T')[0];
+      cleanText = cleanText.replace(this.DATE_PATTERNS.thisWeekend, '').trim();
+    } else if (this.DATE_PATTERNS.nextWeekend.test(text)) {
+      const today = new Date();
+      const currentDay = today.getDay();
+      const daysUntilNextSaturday = currentDay === 6 ? 7 : (6 - currentDay + 7);
+      const nextSaturday = new Date(today);
+      nextSaturday.setDate(today.getDate() + daysUntilNextSaturday);
+      date = nextSaturday.toISOString().split('T')[0];
+      cleanText = cleanText.replace(this.DATE_PATTERNS.nextWeekend, '').trim();
     }
 
     // Check days of week
@@ -159,6 +174,30 @@ export class NaturalLanguageParser {
         const fullYear = year ? (year.length === 2 ? 2000 + parseInt(year) : parseInt(year)) : currentYear;
         date = new Date(fullYear, parseInt(month) - 1, parseInt(day)).toISOString().split('T')[0];
         cleanText = cleanText.replace(this.DATE_PATTERNS.dateSlash, '').trim();
+      }
+
+      // Try dash format
+      if (!date) {
+        const dashMatch = text.match(this.DATE_PATTERNS.dateDash);
+        if (dashMatch) {
+          const [, month, day, year] = dashMatch;
+          const currentYear = new Date().getFullYear();
+          const fullYear = year ? (year.length === 2 ? 2000 + parseInt(year) : parseInt(year)) : currentYear;
+          date = new Date(fullYear, parseInt(month) - 1, parseInt(day)).toISOString().split('T')[0];
+          cleanText = cleanText.replace(this.DATE_PATTERNS.dateDash, '').trim();
+        }
+      }
+
+      // Try dot format
+      if (!date) {
+        const dotMatch = text.match(this.DATE_PATTERNS.dateDot);
+        if (dotMatch) {
+          const [, month, day, year] = dotMatch;
+          const currentYear = new Date().getFullYear();
+          const fullYear = year ? (year.length === 2 ? 2000 + parseInt(year) : parseInt(year)) : currentYear;
+          date = new Date(fullYear, parseInt(month) - 1, parseInt(day)).toISOString().split('T')[0];
+          cleanText = cleanText.replace(this.DATE_PATTERNS.dateDot, '').trim();
+        }
       }
     }
 
