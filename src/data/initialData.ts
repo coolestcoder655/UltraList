@@ -90,7 +90,7 @@ export const initialTemplates: TaskTemplate[] = [
 
 export const initialTasks: TaskType[] = [
   {
-    id: 1,
+    id: "1",
     title: "Complete project proposal",
     description: "Write and review the Q3 project proposal document",
     dueDate: "2025-07-25",
@@ -99,13 +99,13 @@ export const initialTasks: TaskType[] = [
     projectId: 1,
     tags: ["urgent", "document", "deadline"],
     subtasks: [
-      { id: 1, text: "Research requirements", completed: true },
-      { id: 2, text: "Draft outline", completed: false },
-      { id: 3, text: "Review with team", completed: false },
+      { id: "1", text: "Research requirements", completed: true },
+      { id: "2", text: "Draft outline", completed: false },
+      { id: "3", text: "Review with team", completed: false },
     ],
   },
   {
-    id: 2,
+    id: "2",
     title: "Buy groceries",
     description: "Weekly grocery shopping for the family",
     dueDate: "2025-07-20",
@@ -114,12 +114,12 @@ export const initialTasks: TaskType[] = [
     projectId: 2,
     tags: ["shopping", "family"],
     subtasks: [
-      { id: 1, text: "Make shopping list", completed: true },
-      { id: 2, text: "Visit supermarket", completed: true },
+      { id: "1", text: "Make shopping list", completed: true },
+      { id: "2", text: "Visit supermarket", completed: true },
     ],
   },
   {
-    id: 3,
+    id: "3",
     title: "Submit tax documents",
     description: "File quarterly tax documents with accounting team",
     dueDate: "2025-07-15",
@@ -128,9 +128,9 @@ export const initialTasks: TaskType[] = [
     projectId: 1,
     tags: ["urgent", "deadline", "tax"],
     subtasks: [
-      { id: 1, text: "Gather receipts", completed: true },
-      { id: 2, text: "Complete forms", completed: false },
-      { id: 3, text: "Submit to accountant", completed: false },
+      { id: "1", text: "Gather receipts", completed: true },
+      { id: "2", text: "Complete forms", completed: false },
+      { id: "3", text: "Submit to accountant", completed: false },
     ],
   },
 ];

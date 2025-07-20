@@ -352,6 +352,10 @@ const App = (): JSX.Element => {
                 isDarkMode={isDarkMode}
                 tasks={tasks}
                 projects={projects}
+                onTaskCreated={() => {
+                  // Task list will automatically refresh due to useDatabase hook
+                  console.log("Task created successfully!");
+                }}
               />
             </div>
 

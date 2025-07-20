@@ -45,7 +45,11 @@ pub fn run() {
             set_theme,
             get_theme,
             save_setting,
-            get_setting
+            get_setting,
+            // SearchBar Mode commands
+            set_searchbar_mode,
+            get_searchbar_mode,
+            parse_natural_language_task
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

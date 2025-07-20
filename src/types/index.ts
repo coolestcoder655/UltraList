@@ -88,6 +88,7 @@ export type FilterBy =
   | "overdue"
   | "urgent";
 export type Priority = "low" | "medium" | "high";
+export type SearchBarMode = "search" | "create";
 
 export interface PriorityColors {
   low: string;

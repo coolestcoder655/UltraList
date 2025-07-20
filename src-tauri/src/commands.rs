@@ -299,3 +299,111 @@ pub async fn get_setting(key: String, db: State<'_, DatabaseState>) -> Result<Op
     let db = db.lock().map_err(|e| format!("Database lock error: {}", e))?;
     db.get_setting(&key).map_err(|e| format!("Failed to get setting: {}", e))
 }
+
+// SearchBar Mode Commands
+#[tauri::command]
+pub async fn set_searchbar_mode(mode: String, db: State<'_, DatabaseState>) -> Result<(), String> {
+    let db = db.lock().map_err(|e| format!("Database lock error: {}", e))?;
+    db.save_setting("searchbar_mode", &mode).map_err(|e| format!("Failed to set searchbar mode: {}", e))
+}
+
+#[tauri::command]
+pub async fn get_searchbar_mode(db: State<'_, DatabaseState>) -> Result<String, String> {
+    let db = db.lock().map_err(|e| format!("Database lock error: {}", e))?;
+    let mode = db.get_setting("searchbar_mode").map_err(|e| format!("Failed to get searchbar mode: {}", e))?;
+    Ok(mode.unwrap_or_else(|| "search".to_string())) // Default to search mode
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct NaturalLanguageTaskRequest {
+    pub input: String,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct ParsedTask {
+    pub title: String,
+    pub description: String,
+    pub due_date: Option<String>,
+    pub priority: String,
+    pub tags: Vec<String>,
+    pub project_name: Option<String>,
+}
+
+#[tauri::command]
+pub async fn parse_natural_language_task(
+    request: NaturalLanguageTaskRequest,
+) -> Result<ParsedTask, String> {
+    // Basic natural language parsing
+    let input = request.input.to_lowercase();
+    let mut title = request.input.clone();
+    let mut description = String::new();
+    let mut due_date: Option<String> = None;
+    let mut priority = "medium".to_string();
+    let mut tags: Vec<String> = Vec::new();
+    let mut project_name: Option<String> = None;
+
+    // Extract priority keywords
+    if input.contains("urgent") || input.contains("asap") || input.contains("critical") {
+        priority = "high".to_string();
+        title = title.replace("urgent", "").replace("asap", "").replace("critical", "");
+    } else if input.contains("low priority") || input.contains("later") || input.contains("someday") {
+        priority = "low".to_string();
+        title = title.replace("low priority", "").replace("later", "").replace("someday", "");
+    }
+
+    // Extract date keywords
+    let now = chrono::Utc::now();
+    if input.contains("today") {
+        due_date = Some(now.format("%Y-%m-%d").to_string());
+        title = title.replace("today", "");
+    } else if input.contains("tomorrow") {
+        let tomorrow = now + chrono::Duration::days(1);
+        due_date = Some(tomorrow.format("%Y-%m-%d").to_string());
+        title = title.replace("tomorrow", "");
+    } else if input.contains("next week") {
+        let next_week = now + chrono::Duration::weeks(1);
+        due_date = Some(next_week.format("%Y-%m-%d").to_string());
+        title = title.replace("next week", "");
+    }
+
+    // Extract time patterns (e.g., "at 5pm", "by 3:30")
+    let time_regex = regex::Regex::new(r"\b(?:at|by)\s+(\d{1,2}):?(\d{2})?\s*(am|pm)?\b").unwrap();
+    if let Some(captures) = time_regex.find(&input) {
+        // If we have a time, add it to description
+        description.push_str(&format!("Due time: {}", captures.as_str()));
+        title = time_regex.replace(&title, "").to_string();
+    }
+
+    // Extract hashtags as tags
+    let hashtag_regex = regex::Regex::new(r"#(\w+)").unwrap();
+    for capture in hashtag_regex.captures_iter(&input) {
+        if let Some(tag) = capture.get(1) {
+            tags.push(tag.as_str().to_string());
+        }
+    }
+    title = hashtag_regex.replace_all(&title, "").to_string();
+
+    // Extract project mentions (e.g., "for work project", "in personal")
+    let project_regex = regex::Regex::new(r"\b(?:for|in)\s+(\w+(?:\s+\w+)?)\s+project\b").unwrap();
+    if let Some(captures) = project_regex.captures(&input) {
+        if let Some(project) = captures.get(1) {
+            project_name = Some(project.as_str().to_string());
+            title = project_regex.replace(&title, "").to_string();
+        }
+    }
+
+    // Clean up title
+    title = title.trim().to_string();
+    if title.is_empty() {
+        title = "New task".to_string();
+    }
+
+    Ok(ParsedTask {
+        title,
+        description,
+        due_date,
+        priority,
+        tags,
+        project_name,
+    })
+}

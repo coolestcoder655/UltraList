@@ -7,35 +7,38 @@ export const useTasks = (initialTasks: TaskType[] = []) => {
   const updateTask = (id: number, updates: TaskUpdate): void => {
     setTasks(
       tasks.map((task: TaskType) =>
-        task.id === id ? { ...task, ...updates } : task
+        String(task.id) === String(id) ? { ...task, ...updates } : task
       )
     );
   };
 
   const deleteTask = (id: number): void => {
-    setTasks(tasks.filter((task: TaskType) => task.id !== id));
+    setTasks(tasks.filter((task: TaskType) => String(task.id) !== String(id)));
   };
 
   const toggleTask = (id: number): void => {
     updateTask(id, {
-      completed: !tasks.find((t: TaskType) => t.id === id)!.completed,
+      completed: !tasks.find((t: TaskType) => String(t.id) === String(id))!
+        .completed,
     });
   };
 
   const toggleSubtask = (taskId: number, subtaskId: number): void => {
     const task: TaskType | undefined = tasks.find(
-      (t: TaskType) => t.id === taskId
+      (t: TaskType) => String(t.id) === String(taskId)
     );
     if (!task) return;
     const updatedSubtasks: Subtask[] = task.subtasks.map((st: Subtask) =>
-      st.id === subtaskId ? { ...st, completed: !st.completed } : st
+      String(st.id) === String(subtaskId)
+        ? { ...st, completed: !st.completed }
+        : st
     );
     updateTask(taskId, { subtasks: updatedSubtasks });
   };
 
   const addTask = (newTask: Omit<TaskType, "id">): void => {
     const task: TaskType = {
-      id: Date.now(),
+      id: Date.now().toString(),
       ...newTask,
     };
     setTasks([...tasks, task]);

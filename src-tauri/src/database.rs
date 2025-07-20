@@ -159,6 +159,12 @@ impl Database {
             [],
         )?;
 
+        // Insert default searchbar mode setting if not exists
+        self.conn.execute(
+            "INSERT OR IGNORE INTO settings (key, value) VALUES ('searchbar_mode', 'search')",
+            [],
+        )?;
+
         // Seed initial data if tables are empty
         self.seed_initial_data()?;
 

@@ -196,3 +196,55 @@ export const convertToBackendTask = (frontendTask: any): CreateTaskRequest => {
     tags: frontendTask.tags || [],
   };
 };
+
+// SearchBar Mode Types
+export interface ParsedTask {
+  title: string;
+  description: string;
+  due_date: string | null;
+  priority: string;
+  tags: string[];
+  project_name: string | null;
+}
+
+// SearchBar Mode Functions
+export const setSearchBarMode = async (
+  mode: "search" | "create"
+): Promise<void> => {
+  try {
+    await invoke("set_searchbar_mode", { mode });
+  } catch (error) {
+    console.error("Failed to set search bar mode:", error);
+    throw error;
+  }
+};
+
+export const getSearchBarMode = async (): Promise<"search" | "create"> => {
+  try {
+    const mode = await invoke<string>("get_searchbar_mode");
+    return mode as "search" | "create";
+  } catch (error) {
+    console.error("Failed to get search bar mode:", error);
+    return "search"; // Default fallback
+  }
+};
+
+export const parseNaturalLanguageTask = async (
+  input: string
+): Promise<ParsedTask> => {
+  try {
+    const result = await invoke<ParsedTask>("parse_natural_language_task", {
+      request: { input },
+    });
+    return result;
+  } catch (error) {
+    console.error("Failed to parse natural language task:", error);
+    throw error;
+  }
+};
+
+// Direct exports for convenience
+export const createTask = taskService.createTask;
+export const getAllTasks = taskService.getAllTasks;
+export const updateTask = taskService.updateTask;
+export const deleteTask = taskService.deleteTask;
