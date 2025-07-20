@@ -795,6 +795,8 @@ const App = (): JSX.Element => {
                 onSaveCurrentSearch={saveCurrentSearch}
                 parseSearchQuery={parseSearchQuery}
                 isDarkMode={isDarkMode}
+                tasks={tasks}
+                projects={projects}
               />
             </div>
 

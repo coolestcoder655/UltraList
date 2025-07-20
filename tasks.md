@@ -1,7 +1,1 @@
-- [x] Tags or labels
-- [x] Custom filters or views (e.g., "Today", "Overdue", "Urgent")
-- [x] Projects / Lists / Categories
-- [x] Folders (grouping multiple projects)
-- [x] Color coding for tasks or tags
-- [x] Task templates (reusable task formats)
-- [x] Saved searches (e.g., "#errands for tag searching AND priority:high for priority searching")
+- [ ] Add auto complete to the smart search bar.
