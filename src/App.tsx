@@ -4,6 +4,10 @@ import SearchBar from "./components/SearchBar";
 import AddTaskForm from "./components/AddTaskForm";
 import ProjectManagement from "./components/ProjectManagement";
 import TaskList from "./components/TaskList";
+import KanbanView from "./components/KanbanView";
+import GanttView from "./components/GanttView";
+import EisenhowerView from "./components/EisenhowerView";
+import PomodoroView from "./components/PomodoroView";
 import {
   useTheme,
   useTemplates,
@@ -12,7 +16,7 @@ import {
   useDatabase,
 } from "./hooks";
 import { initialTemplates } from "./data/initialData";
-import type { Task as TaskType, Subtask } from "./types";
+import type { Task as TaskType, Subtask, ViewMode } from "./types";
 import "./App.css";
 
 const App = (): JSX.Element => {
@@ -73,6 +77,7 @@ const App = (): JSX.Element => {
   // UI state
   const [showAddForm, setShowAddForm] = useState<boolean>(false);
   const [showProjectForm, setShowProjectForm] = useState<boolean>(false);
+  const [viewMode, setViewMode] = useState<ViewMode>("list");
   const [newProject, setNewProject] = useState({
     name: "",
     color: "bg-blue-500",
@@ -345,24 +350,28 @@ const App = (): JSX.Element => {
             onToggleDarkMode={toggleDarkMode}
             onShowAddForm={() => setShowAddForm(!showAddForm)}
             onShowProjectForm={() => setShowProjectForm(!showProjectForm)}
+            viewMode={viewMode}
+            onViewModeChange={setViewMode}
           />
 
           <div className={`p-6 ${isDarkMode ? "bg-gray-800" : "bg-white"}`}>
-            {/* Search and Filters */}
-            <div className="space-y-4 mb-6">
-              <SearchBar
-                searchQuery={searchQuery}
-                setSearchQuery={setSearchQuery}
-                parseSearchQuery={parseSearchQuery}
-                isDarkMode={isDarkMode}
-                tasks={tasks}
-                projects={projects}
-                onTaskCreated={() => {
-                  // Task list will automatically refresh due to useDatabase hook
-                  console.log("Task created successfully!");
-                }}
-              />
-            </div>
+            {/* Search and Filters - Only show for list view */}
+            {viewMode === "list" && (
+              <div className="space-y-4 mb-6">
+                <SearchBar
+                  searchQuery={searchQuery}
+                  setSearchQuery={setSearchQuery}
+                  parseSearchQuery={parseSearchQuery}
+                  isDarkMode={isDarkMode}
+                  tasks={tasks}
+                  projects={projects}
+                  onTaskCreated={() => {
+                    // Task list will automatically refresh due to useDatabase hook
+                    console.log("Task created successfully!");
+                  }}
+                />
+              </div>
+            )}
 
             {/* Add Task Form */}
             <AddTaskForm
@@ -418,26 +427,81 @@ const App = (): JSX.Element => {
               isDarkMode={isDarkMode}
             />
 
-            {/* Task List */}
-            <TaskList
-              tasks={sortedTasks}
-              editingTask={editingTask}
-              expandedTasks={expandedTasks}
-              priorityColors={priorityColors}
-              isDarkMode={isDarkMode}
-              projects={projects}
-              onToggleTask={handleToggleTask}
-              onToggleSubtask={handleToggleSubtask}
-              onToggleExpanded={toggleExpanded}
-              onStartEdit={startEdit}
-              onSaveEdit={saveEdit}
-              onCancelEdit={() => setEditingTask(null)}
-              onEditingTaskChange={setEditingTask}
-              onDeleteTask={handleDeleteTask}
-              formatDate={formatDate}
-              isOverdue={isOverdue}
-              getTagColor={getTagColor}
-            />
+            {/* Main Content - Switch between different views */}
+            {viewMode === "list" && (
+              <TaskList
+                tasks={sortedTasks}
+                editingTask={editingTask}
+                expandedTasks={expandedTasks}
+                priorityColors={priorityColors}
+                isDarkMode={isDarkMode}
+                projects={projects}
+                onToggleTask={handleToggleTask}
+                onToggleSubtask={handleToggleSubtask}
+                onToggleExpanded={toggleExpanded}
+                onStartEdit={startEdit}
+                onSaveEdit={saveEdit}
+                onCancelEdit={() => setEditingTask(null)}
+                onEditingTaskChange={setEditingTask}
+                onDeleteTask={handleDeleteTask}
+                formatDate={formatDate}
+                isOverdue={isOverdue}
+                getTagColor={getTagColor}
+              />
+            )}
+
+            {viewMode === "kanban" && (
+              <KanbanView
+                tasks={sortedTasks}
+                projects={projects}
+                isDarkMode={isDarkMode}
+                onToggleTask={handleToggleTask}
+                onStartEdit={startEdit}
+                onDeleteTask={handleDeleteTask}
+                formatDate={formatDate}
+                isOverdue={isOverdue}
+                getTagColor={getTagColor}
+                priorityColors={priorityColors}
+              />
+            )}
+
+            {viewMode === "gantt" && (
+              <GanttView
+                tasks={sortedTasks}
+                projects={projects}
+                isDarkMode={isDarkMode}
+                onStartEdit={startEdit}
+                formatDate={formatDate}
+                isOverdue={isOverdue}
+                getTagColor={getTagColor}
+                priorityColors={priorityColors}
+              />
+            )}
+
+            {viewMode === "eisenhower" && (
+              <EisenhowerView
+                tasks={sortedTasks}
+                projects={projects}
+                isDarkMode={isDarkMode}
+                onStartEdit={startEdit}
+                onToggleTask={handleToggleTask}
+                formatDate={formatDate}
+                isOverdue={isOverdue}
+                getTagColor={getTagColor}
+                priorityColors={priorityColors}
+              />
+            )}
+
+            {viewMode === "pomodoro" && (
+              <PomodoroView
+                tasks={sortedTasks}
+                projects={projects}
+                isDarkMode={isDarkMode}
+                onStartEdit={startEdit}
+                getTagColor={getTagColor}
+                priorityColors={priorityColors}
+              />
+            )}
           </div>
         </div>
       </div>

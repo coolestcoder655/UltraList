@@ -1,11 +1,14 @@
 import React from "react";
-import { Plus, FolderPlus, Moon, Sun } from "lucide-react";
+import { Plus, FolderPlus, Moon, Sun, List, Columns, BarChart3, Grid3X3, Timer } from "lucide-react";
+import { ViewMode } from "../types";
 
 interface HeaderProps {
   isDarkMode: boolean;
   onToggleDarkMode: () => void;
   onShowAddForm: () => void;
   onShowProjectForm: () => void;
+  viewMode: ViewMode;
+  onViewModeChange: (mode: ViewMode) => void;
 }
 
 const Header: React.FC<HeaderProps> = ({
@@ -13,7 +16,17 @@ const Header: React.FC<HeaderProps> = ({
   onToggleDarkMode,
   onShowAddForm,
   onShowProjectForm,
+  viewMode,
+  onViewModeChange,
 }) => {
+  const viewModeButtons = [
+    { mode: "list" as ViewMode, icon: List, label: "List" },
+    { mode: "kanban" as ViewMode, icon: Columns, label: "Kanban" },
+    { mode: "gantt" as ViewMode, icon: BarChart3, label: "Gantt" },
+    { mode: "eisenhower" as ViewMode, icon: Grid3X3, label: "Matrix" },
+    { mode: "pomodoro" as ViewMode, icon: Timer, label: "Pomodoro" },
+  ];
+
   return (
     <>
       {/* Header Section */}
@@ -45,7 +58,7 @@ const Header: React.FC<HeaderProps> = ({
         </div>
       </div>
 
-      {/* Action Buttons */}
+      {/* Action Buttons and View Mode Selector */}
       <div className={`p-6 ${isDarkMode ? "bg-gray-800" : "bg-white"}`}>
         <div className="flex flex-wrap gap-4 mb-6">
           <button
@@ -71,6 +84,33 @@ const Header: React.FC<HeaderProps> = ({
             <FolderPlus size={16} />
             Projects/Folders
           </button>
+        </div>
+
+        {/* View Mode Selector */}
+        <div className="mb-4">
+          <h3 className={`text-sm font-medium mb-3 ${isDarkMode ? "text-gray-300" : "text-gray-700"}`}>
+            View Mode
+          </h3>
+          <div className="flex flex-wrap gap-2">
+            {viewModeButtons.map(({ mode, icon: Icon, label }) => (
+              <button
+                key={mode}
+                onClick={() => onViewModeChange(mode)}
+                className={`px-3 py-2 rounded-lg flex items-center gap-2 text-sm transition-colors ${
+                  viewMode === mode
+                    ? isDarkMode
+                      ? "bg-blue-600 text-white"
+                      : "bg-blue-500 text-white"
+                    : isDarkMode
+                    ? "bg-gray-700 text-gray-300 hover:bg-gray-600"
+                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                }`}
+              >
+                <Icon size={14} />
+                {label}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
     </>

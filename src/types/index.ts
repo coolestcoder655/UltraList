@@ -101,3 +101,15 @@ export interface PriorityOrder {
   medium: number;
   low: number;
 }
+
+// View modes for different productivity views
+export type ViewMode = "list" | "kanban" | "gantt" | "eisenhower" | "pomodoro";
+
+// Kanban board status
+export type TaskStatus = "todo" | "in-progress" | "done";
+
+// Extended task interface for additional view-specific data
+export interface ExtendedTask extends Task {
+  status?: TaskStatus;
+  startDate?: string;
+}

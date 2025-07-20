@@ -28,6 +28,128 @@ export const useDatabase = () => {
       setLoading(true);
       setError(null);
 
+      // Check if we're in Tauri context
+      const isInTauri = typeof window !== 'undefined' && '__TAURI__' in window;
+      
+      if (!isInTauri) {
+        // Provide demo data for web browser testing
+        const demoTasks: Task[] = [
+          {
+            id: "1",
+            title: "Design new user interface",
+            description: "Create mockups and wireframes for the new dashboard",
+            dueDate: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString(), // 2 days from now
+            priority: "high",
+            completed: false,
+            subtasks: [
+              { id: "1-1", text: "Research competitor interfaces", completed: true },
+              { id: "1-2", text: "Create initial sketches", completed: false },
+              { id: "1-3", text: "Design high-fidelity mockups", completed: false }
+            ],
+            projectId: 1,
+            tags: ["design", "urgent", "ui"]
+          },
+          {
+            id: "2", 
+            title: "Implement authentication system",
+            description: "Set up user login and registration functionality",
+            dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // 1 week from now
+            priority: "high",
+            completed: false,
+            subtasks: [
+              { id: "2-1", text: "Set up database schema", completed: true },
+              { id: "2-2", text: "Create login form", completed: true },
+              { id: "2-3", text: "Implement password hashing", completed: false }
+            ],
+            projectId: 1,
+            tags: ["backend", "security"]
+          },
+          {
+            id: "3",
+            title: "Write documentation",
+            description: "Document the API endpoints and usage examples",
+            dueDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(), // 2 weeks from now
+            priority: "medium",
+            completed: false,
+            subtasks: [],
+            projectId: 2,
+            tags: ["docs", "api"]
+          },
+          {
+            id: "4",
+            title: "Fix mobile responsiveness",
+            description: "Ensure the app works well on mobile devices",
+            dueDate: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(), // 1 day ago (overdue)
+            priority: "medium",
+            completed: false,
+            subtasks: [
+              { id: "4-1", text: "Test on iOS", completed: false },
+              { id: "4-2", text: "Test on Android", completed: false }
+            ],
+            tags: ["mobile", "responsive"]
+          },
+          {
+            id: "5",
+            title: "Prepare presentation slides",
+            description: "Create slides for the quarterly review meeting",
+            dueDate: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000).toISOString(), // Tomorrow
+            priority: "low",
+            completed: false,
+            subtasks: [],
+            tags: ["presentation", "meeting"]
+          },
+          {
+            id: "6",
+            title: "Code review",
+            description: "Review pull requests from team members",
+            dueDate: "",
+            priority: "low",
+            completed: true,
+            subtasks: [
+              { id: "6-1", text: "Review PR #123", completed: true },
+              { id: "6-2", text: "Review PR #124", completed: true }
+            ],
+            projectId: 1,
+            tags: ["review", "team"]
+          }
+        ];
+
+        const demoProjects: Project[] = [
+          {
+            id: 1,
+            name: "UltraList App",
+            color: "bg-blue-500",
+            description: "Main productivity application development",
+            folderId: 1
+          },
+          {
+            id: 2,
+            name: "Documentation",
+            color: "bg-green-500", 
+            description: "User guides and API documentation"
+          }
+        ];
+
+        const demoFolders: Folder[] = [
+          {
+            id: 1,
+            name: "Active Projects",
+            color: "bg-purple-500",
+            description: "Currently active development projects"
+          }
+        ];
+
+        const demoTags = ["design", "urgent", "ui", "backend", "security", "docs", "api", "mobile", "responsive", "presentation", "meeting", "review", "team"];
+
+        setTasks(demoTasks);
+        setProjects(demoProjects);
+        setFolders(demoFolders);
+        setTags(demoTags);
+        setTheme("light");
+        setLoading(false);
+        return;
+      }
+
       const [tasksData, projectsData, foldersData, tagsData, themeData]: [
         TaskWithDetails[],
         DatabaseProject[],
