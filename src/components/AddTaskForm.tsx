@@ -1,5 +1,5 @@
 import React from "react";
-import { Plus, X } from "lucide-react";
+import { Plus, X, Lightbulb, Check } from "lucide-react";
 import type {
   TaskTemplate,
   NewTask,
@@ -7,6 +7,7 @@ import type {
   Project,
   Folder,
 } from "../types";
+import type { ParseResult } from "../services/naturalLanguageParser";
 
 interface AddTaskFormProps {
   showAddForm: boolean;
@@ -20,6 +21,8 @@ interface AddTaskFormProps {
   templates: TaskTemplate[];
   projects: Project[];
   folders: Folder[];
+  parseResult: ParseResult | null;
+  showParseSuggestions: boolean;
   onApplyTemplate: (templateId: number) => void;
   onAddTask: () => void;
   onSaveAsTemplate: () => void;
@@ -28,6 +31,9 @@ interface AddTaskFormProps {
   onAddTagToNewTask: () => void;
   onRemoveTagFromNewTask: (index: number) => void;
   onDeleteTemplate: (id: number) => void;
+  onParseNaturalLanguage: (input: string) => void;
+  onApplyParsedData: () => void;
+  onDismissParseSuggestions: () => void;
   getTagColor: (tag: string) => string;
   isDarkMode: boolean;
 }
@@ -44,6 +50,8 @@ const AddTaskForm: React.FC<AddTaskFormProps> = ({
   templates,
   projects,
   folders,
+  parseResult,
+  showParseSuggestions,
   onApplyTemplate,
   onAddTask,
   onSaveAsTemplate,
@@ -52,6 +60,9 @@ const AddTaskForm: React.FC<AddTaskFormProps> = ({
   onAddTagToNewTask,
   onRemoveTagFromNewTask,
   onDeleteTemplate,
+  onParseNaturalLanguage,
+  onApplyParsedData,
+  onDismissParseSuggestions,
   getTagColor,
   isDarkMode,
 }) => {
@@ -155,19 +166,68 @@ const AddTaskForm: React.FC<AddTaskFormProps> = ({
       </div>
 
       <div className="space-y-4">
-        <input
-          type="text"
-          placeholder="Task title..."
-          value={newTask.title}
-          onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-            setNewTask({ ...newTask, title: e.target.value })
-          }
-          className={`w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-            isDarkMode
-              ? "border-gray-600 bg-gray-800 text-white placeholder-gray-400"
-              : "border-gray-300 bg-white"
-          }`}
-        />
+        {/* Enhanced Title Input with Natural Language Processing */}
+        <div className="space-y-2">
+          <input
+            type="text"
+            placeholder='Try: "Buy eggs tomorrow at 5pm" or "Call Alice next Monday"'
+            value={newTask.title}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+              const value = e.target.value;
+              setNewTask({ ...newTask, title: value });
+              onParseNaturalLanguage(value);
+            }}
+            className={`w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+              isDarkMode
+                ? "border-gray-600 bg-gray-800 text-white placeholder-gray-400"
+                : "border-gray-300 bg-white"
+            }`}
+          />
+          
+          {/* Natural Language Parse Suggestions */}
+          {showParseSuggestions && parseResult && (
+            <div className={`p-3 rounded-lg border ${
+              isDarkMode 
+                ? "bg-blue-900/20 border-blue-700 text-blue-200" 
+                : "bg-blue-50 border-blue-200 text-blue-800"
+            }`}>
+              <div className="flex items-center gap-2 mb-2">
+                <Lightbulb size={16} />
+                <span className="text-sm font-medium">Smart suggestions detected:</span>
+              </div>
+              <div className="space-y-1">
+                {parseResult.suggestions.map((suggestion, index) => (
+                  <div key={index} className="text-xs">
+                    {suggestion}
+                  </div>
+                ))}
+              </div>
+              <div className="flex gap-2 mt-3">
+                <button
+                  onClick={onApplyParsedData}
+                  className={`flex items-center gap-1 px-3 py-1 rounded text-xs font-medium ${
+                    isDarkMode
+                      ? "bg-blue-600 hover:bg-blue-700 text-white"
+                      : "bg-blue-600 hover:bg-blue-700 text-white"
+                  }`}
+                >
+                  <Check size={12} />
+                  Apply Changes
+                </button>
+                <button
+                  onClick={onDismissParseSuggestions}
+                  className={`px-3 py-1 rounded text-xs ${
+                    isDarkMode
+                      ? "bg-gray-600 hover:bg-gray-700 text-gray-300"
+                      : "bg-gray-200 hover:bg-gray-300 text-gray-700"
+                  }`}
+                >
+                  Dismiss
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
         <textarea
           placeholder="Description (optional)..."
           value={newTask.description}

@@ -49,12 +49,17 @@ const App = (): JSX.Element => {
     setNewSubtask,
     newTag,
     setNewTag,
+    parseResult,
+    showParseSuggestions,
     resetNewTask,
     addSubtaskToNewTask,
     removeSubtaskFromNewTask,
     addTagToNewTask,
     removeTagFromNewTask,
     applyTemplate: applyTemplateToForm,
+    parseNaturalLanguage,
+    applyParsedData,
+    dismissParseSuggestions,
   } = useTaskForm();
   const {
     searchQuery,
@@ -372,6 +377,8 @@ const App = (): JSX.Element => {
               templates={templates}
               projects={projects}
               folders={folders}
+              parseResult={parseResult}
+              showParseSuggestions={showParseSuggestions}
               onApplyTemplate={applyTemplate}
               onAddTask={handleAddTask}
               onSaveAsTemplate={saveAsTemplate}
@@ -380,6 +387,9 @@ const App = (): JSX.Element => {
               onAddTagToNewTask={addTagToNewTask}
               onRemoveTagFromNewTask={removeTagFromNewTask}
               onDeleteTemplate={deleteTemplate}
+              onParseNaturalLanguage={parseNaturalLanguage}
+              onApplyParsedData={applyParsedData}
+              onDismissParseSuggestions={dismissParseSuggestions}
               getTagColor={getTagColor}
               isDarkMode={isDarkMode}
             />
