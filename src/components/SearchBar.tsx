@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
-import { Search, X } from "lucide-react";
+import { Search, X, Info } from "lucide-react";
 import type { Task, Project } from "../types";
 
 interface SearchBarProps {
