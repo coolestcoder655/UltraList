@@ -16,7 +16,7 @@ export const useProjectsAndFolders = (
     return folders.find((folder) => folder.id === id);
   };
 
-  const addProject = (projectData: Omit<Project, 'id'>): void => {
+  const addProject = (projectData: Omit<Project, "id">): void => {
     const project: Project = {
       id: Date.now(),
       ...projectData,
@@ -32,7 +32,7 @@ export const useProjectsAndFolders = (
     setProjects(projects.filter((p) => p.id !== id));
   };
 
-  const addFolder = (folderData: Omit<Folder, 'id'>): void => {
+  const addFolder = (folderData: Omit<Folder, "id">): void => {
     const folder: Folder = {
       id: Date.now(),
       ...folderData,

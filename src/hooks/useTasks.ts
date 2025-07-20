@@ -33,7 +33,7 @@ export const useTasks = (initialTasks: TaskType[] = []) => {
     updateTask(taskId, { subtasks: updatedSubtasks });
   };
 
-  const addTask = (newTask: Omit<TaskType, 'id'>): void => {
+  const addTask = (newTask: Omit<TaskType, "id">): void => {
     const task: TaskType = {
       id: Date.now(),
       ...newTask,

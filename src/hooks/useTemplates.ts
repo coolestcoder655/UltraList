@@ -4,7 +4,7 @@ import type { TaskTemplate } from "../types";
 export const useTemplates = (initialTemplates: TaskTemplate[] = []) => {
   const [templates, setTemplates] = useState<TaskTemplate[]>(initialTemplates);
 
-  const addTemplate = (templateData: Omit<TaskTemplate, 'id'>): void => {
+  const addTemplate = (templateData: Omit<TaskTemplate, "id">): void => {
     const template: TaskTemplate = {
       id: Date.now(),
       ...templateData,

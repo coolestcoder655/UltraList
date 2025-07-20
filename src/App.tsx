@@ -12,14 +12,29 @@ import {
   useTaskForm,
   useTaskFiltering,
 } from "./hooks";
-import { initialTasks, initialProjects, initialFolders, initialTemplates } from "./data/initialData";
+import {
+  initialTasks,
+  initialProjects,
+  initialFolders,
+  initialTemplates,
+} from "./data/initialData";
 import type { Task as TaskType, Subtask } from "./types";
 import "./App.css";
 
 const App = (): JSX.Element => {
   // Custom hooks
-  const { isDarkMode, toggleDarkMode, getTagColor, priorityColors } = useTheme();
-  const { tasks, updateTask, deleteTask, toggleTask, toggleSubtask, addTask, isOverdue, formatDate } = useTasks(initialTasks);
+  const { isDarkMode, toggleDarkMode, getTagColor, priorityColors } =
+    useTheme();
+  const {
+    tasks,
+    updateTask,
+    deleteTask,
+    toggleTask,
+    toggleSubtask,
+    addTask,
+    isOverdue,
+    formatDate,
+  } = useTasks(initialTasks);
   const {
     projects,
     folders,
@@ -32,7 +47,8 @@ const App = (): JSX.Element => {
     updateFolder,
     deleteFolder: deleteFolderFromState,
   } = useProjectsAndFolders(initialProjects, initialFolders);
-  const { templates, addTemplate, deleteTemplate } = useTemplates(initialTemplates);
+  const { templates, addTemplate, deleteTemplate } =
+    useTemplates(initialTemplates);
   const {
     newTask,
     setNewTask,
@@ -155,7 +171,7 @@ const App = (): JSX.Element => {
   const deleteProject = (id: number): void => {
     deleteProjectFromState(id);
     // Also remove this project from any tasks
-    tasks.forEach(task => {
+    tasks.forEach((task) => {
       if (task.projectId === id) {
         updateTask(task.id, { projectId: undefined });
       }
