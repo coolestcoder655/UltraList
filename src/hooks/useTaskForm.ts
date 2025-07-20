@@ -1,5 +1,6 @@
 import { useState } from "react";
 import type { NewTask, EditingTask } from "../types";
+import { NaturalLanguageParser, type ParseResult } from "../services/naturalLanguageParser";
 
 export const useTaskForm = () => {
   const [newTask, setNewTask] = useState<NewTask>({
@@ -15,6 +16,8 @@ export const useTaskForm = () => {
   const [editingTask, setEditingTask] = useState<EditingTask | null>(null);
   const [newSubtask, setNewSubtask] = useState<string>("");
   const [newTag, setNewTag] = useState<string>("");
+  const [parseResult, setParseResult] = useState<ParseResult | null>(null);
+  const [showParseSuggestions, setShowParseSuggestions] = useState<boolean>(false);
 
   const resetNewTask = (): void => {
     setNewTask({
@@ -27,6 +30,8 @@ export const useTaskForm = () => {
       tags: [],
     });
     setNewSubtask("");
+    setParseResult(null);
+    setShowParseSuggestions(false);
   };
 
   const addSubtaskToNewTask = (): void => {
@@ -80,6 +85,39 @@ export const useTaskForm = () => {
       projectId: template.defaultProjectId,
       tags: [...template.defaultTags],
     });
+    setParseResult(null);
+    setShowParseSuggestions(false);
+  };
+
+  const parseNaturalLanguage = (input: string): void => {
+    if (!input.trim()) {
+      setParseResult(null);
+      setShowParseSuggestions(false);
+      return;
+    }
+
+    const result = NaturalLanguageParser.parse(input);
+    setParseResult(result);
+    setShowParseSuggestions(result.suggestions.length > 0);
+  };
+
+  const applyParsedData = (): void => {
+    if (!parseResult) return;
+
+    const { parsed } = parseResult;
+    setNewTask({
+      ...newTask,
+      title: parsed.cleanTitle,
+      dueDate: parsed.dueDate || newTask.dueDate,
+      priority: parsed.priority || newTask.priority,
+      tags: parsed.tags ? [...parsed.tags] : newTask.tags,
+    });
+    setParseResult(null);
+    setShowParseSuggestions(false);
+  };
+
+  const dismissParseSuggestions = (): void => {
+    setShowParseSuggestions(false);
   };
 
   return {
@@ -91,11 +129,16 @@ export const useTaskForm = () => {
     setNewSubtask,
     newTag,
     setNewTag,
+    parseResult,
+    showParseSuggestions,
     resetNewTask,
     addSubtaskToNewTask,
     removeSubtaskFromNewTask,
     addTagToNewTask,
     removeTagFromNewTask,
     applyTemplate,
+    parseNaturalLanguage,
+    applyParsedData,
+    dismissParseSuggestions,
   };
 };
