@@ -32,8 +32,13 @@ const SearchBar: React.FC<SearchBarProps> = ({
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [activeSuggestionIndex, setActiveSuggestionIndex] = useState(-1);
+  const [showSecondaryDropdown, setShowSecondaryDropdown] = useState(false);
+  const [secondaryOptions, setSecondaryOptions] = useState<string[]>([]);
+  const [activeSecondaryIndex, setActiveSecondaryIndex] = useState(-1);
+  const [pendingPrefix, setPendingPrefix] = useState<string>("");
   const inputRef = useRef<HTMLInputElement>(null);
   const suggestionsRef = useRef<HTMLDivElement>(null);
+  const secondaryRef = useRef<HTMLDivElement>(null);
 
   // Generate autocomplete suggestions based on current input
   const generateSuggestions = (query: string): string[] => {
@@ -48,49 +53,27 @@ const SearchBar: React.FC<SearchBarProps> = ({
       task.tags.forEach((tag) => allTags.add(tag));
     });
 
-    // Get project names
-    const projectNames = projects.map((p) => p.name.toLowerCase());
-
-    // Priority suggestions
-    if (
-      lastWord.startsWith("priority:") ||
-      lastWord === "priority:" ||
-      "priority:".includes(lastWord)
-    ) {
-      const priorities = ["priority:high", "priority:medium", "priority:low"];
-      suggestions.push(...priorities.filter((p) => p.includes(lastWord)));
+    // Check if user is typing a filter prefix
+    const filterPrefixes = ["priority", "project", "status", "due"];
+    
+    // Priority filter - show just "priority" as option
+    if ("priority".includes(lastWord.toLowerCase()) && lastWord.length > 0) {
+      suggestions.push("priority");
     }
-
-    // Project suggestions
-    if (
-      lastWord.startsWith("project:") ||
-      lastWord === "project:" ||
-      "project:".includes(lastWord)
-    ) {
-      const projectSuggestions = projectNames.map((name) => `project:${name}`);
-      suggestions.push(
-        ...projectSuggestions.filter((p) => p.includes(lastWord.toLowerCase()))
-      );
+    
+    // Project filter - show just "project" as option
+    if ("project".includes(lastWord.toLowerCase()) && lastWord.length > 0) {
+      suggestions.push("project");
     }
-
-    // Status suggestions
-    if (
-      lastWord.startsWith("status:") ||
-      lastWord === "status:" ||
-      "status:".includes(lastWord)
-    ) {
-      const statuses = ["status:completed", "status:incomplete"];
-      suggestions.push(...statuses.filter((s) => s.includes(lastWord)));
+    
+    // Status filter - show just "status" as option
+    if ("status".includes(lastWord.toLowerCase()) && lastWord.length > 0) {
+      suggestions.push("status");
     }
-
-    // Due date suggestions
-    if (
-      lastWord.startsWith("due:") ||
-      lastWord === "due:" ||
-      "due:".includes(lastWord)
-    ) {
-      const dueDates = ["due:today", "due:overdue"];
-      suggestions.push(...dueDates.filter((d) => d.includes(lastWord)));
+    
+    // Due filter - show just "due" as option
+    if ("due".includes(lastWord.toLowerCase()) && lastWord.length > 0) {
+      suggestions.push("due");
     }
 
     // Tag suggestions
@@ -101,12 +84,8 @@ const SearchBar: React.FC<SearchBarProps> = ({
           t.toLowerCase().includes(lastWord.toLowerCase())
         )
       );
-    } else if (lastWord && !lastWord.includes(":")) {
-      // Show available prefixes when typing
-      const prefixes = ["priority:", "project:", "status:", "due:"];
-      suggestions.push(...prefixes.filter((p) => p.includes(lastWord)));
-
-      // Also show tags without # prefix
+    } else if (lastWord && !filterPrefixes.some(prefix => prefix.includes(lastWord.toLowerCase()))) {
+      // Also show tags without # prefix when not typing filter prefixes
       const tagSuggestions = Array.from(allTags).map((tag) => `#${tag}`);
       suggestions.push(
         ...tagSuggestions.filter((t) =>
@@ -118,6 +97,22 @@ const SearchBar: React.FC<SearchBarProps> = ({
     return [...new Set(suggestions)].slice(0, 8); // Limit to 8 suggestions
   };
 
+  // Get secondary options for a selected filter
+  const getSecondaryOptions = (filterType: string): string[] => {
+    switch (filterType) {
+      case "priority":
+        return ["high", "medium", "low"];
+      case "status":
+        return ["completed", "incomplete"];
+      case "due":
+        return ["today", "overdue"];
+      case "project":
+        return projects.map(p => p.name.toLowerCase());
+      default:
+        return [];
+    }
+  };
+
   // Handle input change and update suggestions
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
@@ -127,6 +122,11 @@ const SearchBar: React.FC<SearchBarProps> = ({
     setSuggestions(newSuggestions);
     setShowSuggestions(newSuggestions.length > 0);
     setActiveSuggestionIndex(-1);
+    
+    // Close secondary dropdown when typing
+    setShowSecondaryDropdown(false);
+    setPendingPrefix("");
+    setSecondaryOptions([]);
 
     // Clear saved search when typing
     if (activeSavedSearch) {
@@ -136,15 +136,71 @@ const SearchBar: React.FC<SearchBarProps> = ({
 
   // Handle suggestion selection
   const applySuggestion = (suggestion: string) => {
+    const filterTypes = ["priority", "project", "status", "due"];
+    
+    if (filterTypes.includes(suggestion)) {
+      // This is a filter type, show secondary dropdown
+      setPendingPrefix(suggestion);
+      const options = getSecondaryOptions(suggestion);
+      setSecondaryOptions(options);
+      setShowSecondaryDropdown(true);
+      setShowSuggestions(false);
+      setActiveSecondaryIndex(0);
+    } else {
+      // This is a direct suggestion (like a tag), apply it immediately
+      const words = searchQuery.split(" ");
+      words[words.length - 1] = suggestion;
+      setSearchQuery(words.join(" ") + " ");
+      setShowSuggestions(false);
+      inputRef.current?.focus();
+    }
+  };
+
+  // Handle secondary option selection
+  const applySecondaryOption = (option: string) => {
     const words = searchQuery.split(" ");
-    words[words.length - 1] = suggestion;
+    words[words.length - 1] = `${pendingPrefix}:${option}`;
     setSearchQuery(words.join(" ") + " ");
-    setShowSuggestions(false);
+    setShowSecondaryDropdown(false);
+    setPendingPrefix("");
+    setSecondaryOptions([]);
     inputRef.current?.focus();
   };
 
   // Handle keyboard navigation
   const handleKeyDown = (e: React.KeyboardEvent) => {
+    // Handle secondary dropdown navigation
+    if (showSecondaryDropdown) {
+      switch (e.key) {
+        case "ArrowDown":
+          e.preventDefault();
+          setActiveSecondaryIndex(prev => 
+            prev < secondaryOptions.length - 1 ? prev + 1 : 0
+          );
+          break;
+        case "ArrowUp":
+          e.preventDefault();
+          setActiveSecondaryIndex(prev => 
+            prev > 0 ? prev - 1 : secondaryOptions.length - 1
+          );
+          break;
+        case "Enter":
+          e.preventDefault();
+          if (activeSecondaryIndex >= 0) {
+            applySecondaryOption(secondaryOptions[activeSecondaryIndex]);
+          }
+          break;
+        case "Escape":
+          setShowSecondaryDropdown(false);
+          setPendingPrefix("");
+          setSecondaryOptions([]);
+          setActiveSecondaryIndex(-1);
+          break;
+      }
+      return;
+    }
+
+    // Handle primary suggestions navigation
     if (!showSuggestions) return;
 
     switch (e.key) {
@@ -179,10 +235,15 @@ const SearchBar: React.FC<SearchBarProps> = ({
       if (
         suggestionsRef.current &&
         !suggestionsRef.current.contains(event.target as Node) &&
+        secondaryRef.current &&
+        !secondaryRef.current.contains(event.target as Node) &&
         inputRef.current &&
         !inputRef.current.contains(event.target as Node)
       ) {
         setShowSuggestions(false);
+        setShowSecondaryDropdown(false);
+        setPendingPrefix("");
+        setSecondaryOptions([]);
       }
     };
 
@@ -223,6 +284,9 @@ const SearchBar: React.FC<SearchBarProps> = ({
               onClick={() => {
                 setSearchQuery("");
                 setShowSuggestions(false);
+                setShowSecondaryDropdown(false);
+                setPendingPrefix("");
+                setSecondaryOptions([]);
               }}
               className={`absolute right-3 top-2 p-1 rounded-full transition-colors ${
                 isDarkMode
@@ -259,18 +323,17 @@ const SearchBar: React.FC<SearchBarProps> = ({
                   }`}
                 >
                   <span className="font-mono text-sm">{suggestion}</span>
-                  {suggestion.includes(":") && (
+                  {["priority", "project", "status", "due"].includes(suggestion) && (
                     <span
                       className={`ml-2 text-xs ${
                         isDarkMode ? "text-gray-400" : "text-gray-500"
                       }`}
                     >
-                      {suggestion.startsWith("priority:") &&
-                        "Set task priority"}
-                      {suggestion.startsWith("project:") && "Filter by project"}
-                      {suggestion.startsWith("status:") &&
-                        "Filter by completion status"}
-                      {suggestion.startsWith("due:") && "Filter by due date"}
+                      {suggestion === "priority" && "Set task priority"}
+                      {suggestion === "project" && "Filter by project"}
+                      {suggestion === "status" && "Filter by completion status"}
+                      {suggestion === "due" && "Filter by due date"}
+                      <span className="ml-1">→</span>
                     </span>
                   )}
                   {suggestion.startsWith("#") && (
@@ -282,6 +345,45 @@ const SearchBar: React.FC<SearchBarProps> = ({
                       Filter by tag
                     </span>
                   )}
+                </button>
+              ))}
+            </div>
+          )}
+
+          {/* Secondary Options Dropdown */}
+          {showSecondaryDropdown && secondaryOptions.length > 0 && (
+            <div
+              ref={secondaryRef}
+              className={`absolute top-full left-0 right-0 mt-1 border rounded-lg shadow-lg z-50 max-h-60 overflow-y-auto ${
+                isDarkMode
+                  ? "border-gray-600 bg-gray-700"
+                  : "border-gray-200 bg-white"
+              }`}
+            >
+              <div
+                className={`px-3 py-2 text-xs font-medium border-b ${
+                  isDarkMode
+                    ? "text-gray-400 border-gray-600"
+                    : "text-gray-500 border-gray-200"
+                }`}
+              >
+                Select {pendingPrefix}:
+              </div>
+              {secondaryOptions.map((option, index) => (
+                <button
+                  key={option}
+                  onClick={() => applySecondaryOption(option)}
+                  className={`w-full text-left px-3 py-2 hover:bg-opacity-80 transition-colors ${
+                    index === activeSecondaryIndex
+                      ? isDarkMode
+                        ? "bg-blue-600 text-white"
+                        : "bg-blue-100 text-blue-800"
+                      : isDarkMode
+                      ? "text-gray-200 hover:bg-gray-600"
+                      : "text-gray-700 hover:bg-gray-50"
+                  }`}
+                >
+                  <span className="font-mono text-sm">{option}</span>
                 </button>
               ))}
             </div>
