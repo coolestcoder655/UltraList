@@ -6,47 +6,37 @@ import ProjectManagement from "./components/ProjectManagement";
 import TaskList from "./components/TaskList";
 import {
   useTheme,
-  useTasks,
-  useProjectsAndFolders,
   useTemplates,
   useTaskForm,
   useTaskFiltering,
+  useDatabase,
 } from "./hooks";
-import {
-  initialTasks,
-  initialProjects,
-  initialFolders,
-  initialTemplates,
-} from "./data/initialData";
+import { initialTemplates } from "./data/initialData";
 import type { Task as TaskType, Subtask } from "./types";
 import "./App.css";
 
 const App = (): JSX.Element => {
-  // Custom hooks
-  const { isDarkMode, toggleDarkMode, getTagColor, priorityColors } =
-    useTheme();
+  // Database integration - replaces useTasks and useProjectsAndFolders
   const {
     tasks,
-    updateTask,
-    deleteTask,
-    toggleTask,
-    toggleSubtask,
-    addTask,
-    isOverdue,
-    formatDate,
-  } = useTasks(initialTasks);
-  const {
     projects,
     folders,
-    getProjectById,
-    getFolderById,
-    addProject: addProjectToState,
-    updateProject,
-    deleteProject: deleteProjectFromState,
-    addFolder: addFolderToState,
-    updateFolder,
-    deleteFolder: deleteFolderFromState,
-  } = useProjectsAndFolders(initialProjects, initialFolders);
+    theme,
+    loading,
+    error,
+    createTask,
+    updateTask,
+    deleteTask,
+    toggleTaskCompletion,
+    createProject,
+    deleteProject,
+    createFolder,
+    deleteFolder,
+    updateTheme,
+  } = useDatabase();
+
+  // Custom hooks (keeping existing ones that don't conflict)
+  const { getTagColor, priorityColors } = useTheme();
   const { templates, addTemplate, deleteTemplate } =
     useTemplates(initialTemplates);
   const {
@@ -92,22 +82,38 @@ const App = (): JSX.Element => {
   const [editingFolder, setEditingFolder] = useState<any>(null);
 
   // Task management functions
-  const handleAddTask = (): void => {
+  const handleAddTask = async (): Promise<void> => {
     if (!newTask.title.trim()) return;
 
-    const taskToAdd = {
-      ...newTask,
-      completed: false,
-      subtasks: newTask.subtasks.map((text: string, index: number) => ({
-        id: index + 1,
-        text,
-        completed: false,
-      })),
-    };
+    console.log("Creating task with data:", newTask);
 
-    addTask(taskToAdd);
-    resetNewTask();
-    setShowAddForm(false);
+    try {
+      const taskData = {
+        title: newTask.title,
+        description: newTask.description,
+        dueDate: newTask.dueDate,
+        priority: newTask.priority,
+        projectId: newTask.projectId,
+        subtasks: newTask.subtasks,
+        tags: newTask.tags,
+      };
+
+      console.log("Converted task data:", taskData);
+
+      const result = await createTask(taskData);
+      console.log("Task created successfully with ID:", result);
+
+      resetNewTask();
+      setShowAddForm(false);
+    } catch (error) {
+      console.error("Failed to create task:", error);
+      // Show user-friendly error message
+      alert(
+        `Failed to create task: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`
+      );
+    }
   };
 
   const startEdit = (task: TaskType): void => {
@@ -117,22 +123,23 @@ const App = (): JSX.Element => {
     });
   };
 
-  const saveEdit = (): void => {
+  const saveEdit = async (): Promise<void> => {
     if (!editingTask?.title.trim()) return;
 
-    const updatedTask: Partial<TaskType> = {
-      ...editingTask,
-      subtasks: editingTask.subtasks.map((text: string, index: number) => ({
-        id: index + 1,
-        text,
-        completed:
-          tasks.find((t: TaskType) => t.id === editingTask.id)?.subtasks[index]
-            ?.completed || false,
-      })),
-    };
-
-    updateTask(editingTask.id, updatedTask);
-    setEditingTask(null);
+    try {
+      await updateTask(editingTask.id.toString(), {
+        title: editingTask.title,
+        description: editingTask.description,
+        dueDate: editingTask.dueDate,
+        priority: editingTask.priority,
+        projectId: editingTask.projectId,
+        subtasks: editingTask.subtasks,
+        tags: editingTask.tags,
+      });
+      setEditingTask(null);
+    } catch (error) {
+      console.error("Failed to update task:", error);
+    }
   };
 
   // Template functions
@@ -157,39 +164,162 @@ const App = (): JSX.Element => {
   };
 
   // Project and Folder management functions
-  const addProject = (): void => {
+  const addProject = async (): Promise<void> => {
     if (!newProject.name.trim()) return;
-    addProjectToState(newProject);
-    setNewProject({
-      name: "",
-      color: "bg-blue-500",
-      description: "",
-      folderId: undefined,
-    });
+    try {
+      await createProject(
+        newProject.name,
+        newProject.color,
+        newProject.description,
+        newProject.folderId
+      );
+      setNewProject({
+        name: "",
+        color: "bg-blue-500",
+        description: "",
+        folderId: undefined,
+      });
+    } catch (error) {
+      console.error("Failed to create project:", error);
+    }
   };
 
-  const deleteProject = (id: number): void => {
-    deleteProjectFromState(id);
-    // Also remove this project from any tasks
-    tasks.forEach((task) => {
-      if (task.projectId === id) {
-        updateTask(task.id, { projectId: undefined });
-      }
-    });
+  const handleDeleteProject = async (id: number): Promise<void> => {
+    try {
+      await deleteProject(id);
+      // Also remove this project from any tasks
+      tasks.forEach(async (task) => {
+        if (task.projectId === id) {
+          await updateTask(task.id.toString(), { projectId: undefined });
+        }
+      });
+    } catch (error) {
+      console.error("Failed to delete project:", error);
+    }
   };
 
-  const addFolder = (): void => {
+  const addFolder = async (): Promise<void> => {
     if (!newFolder.name.trim()) return;
-    addFolderToState(newFolder);
-    setNewFolder({ name: "", color: "bg-gray-500", description: "" });
+    try {
+      await createFolder(
+        newFolder.name,
+        newFolder.color,
+        newFolder.description
+      );
+      setNewFolder({ name: "", color: "bg-gray-500", description: "" });
+    } catch (error) {
+      console.error("Failed to create folder:", error);
+    }
   };
 
-  const deleteFolder = (id: number): void => {
-    deleteFolderFromState(id);
+  const handleDeleteFolder = async (id: number): Promise<void> => {
+    try {
+      await deleteFolder(id);
+    } catch (error) {
+      console.error("Failed to delete folder:", error);
+    }
+  };
+
+  // Helper functions
+  const getProjectById = (id: number) => projects.find((p) => p.id === id);
+  const getFolderById = (id: number) => folders.find((f) => f.id === id);
+
+  // Utility functions for tasks
+  const isOverdue = (dateString: string): boolean => {
+    if (!dateString) return false;
+    try {
+      const taskDate = new Date(dateString);
+      const today = new Date();
+      taskDate.setHours(0, 0, 0, 0);
+      today.setHours(0, 0, 0, 0);
+      return taskDate < today;
+    } catch {
+      return false;
+    }
+  };
+
+  const formatDate = (dateString: string): string => {
+    if (!dateString) return "";
+    try {
+      return new Date(dateString).toLocaleDateString();
+    } catch {
+      return dateString;
+    }
+  };
+
+  const handleToggleTask = async (id: number): Promise<void> => {
+    const task = tasks.find((t) => t.id === id);
+    if (task) {
+      try {
+        await toggleTaskCompletion(task.id.toString(), !task.completed);
+      } catch (error) {
+        console.error("Failed to toggle task:", error);
+      }
+    }
+  };
+
+  const handleToggleSubtask = async (
+    taskId: number,
+    subtaskId: number
+  ): Promise<void> => {
+    const task = tasks.find((t) => t.id === taskId);
+    if (task) {
+      const subtask = task.subtasks.find((st) => st.id === subtaskId);
+      if (subtask) {
+        try {
+          // Note: This requires subtask database ID, we'll need to modify this
+          console.log("Subtask toggle not yet implemented for database");
+        } catch (error) {
+          console.error("Failed to toggle subtask:", error);
+        }
+      }
+    }
+  };
+
+  const handleDeleteTask = async (id: number): Promise<void> => {
+    try {
+      await deleteTask(id.toString());
+    } catch (error) {
+      console.error("Failed to delete task:", error);
+    }
+  };
+
+  // Use database theme instead of local state
+  const isDarkMode = theme === "dark";
+  const toggleDarkMode = async () => {
+    try {
+      await updateTheme(isDarkMode ? "light" : "dark");
+    } catch (error) {
+      console.error("Failed to toggle theme:", error);
+    }
   };
 
   // Get filtered and sorted tasks
   const sortedTasks = getFilteredAndSortedTasks(tasks, getProjectById);
+
+  // Show loading state while database is initializing
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-500 mx-auto mb-4"></div>
+          <p className="text-lg">Loading UltraList...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error state if database fails to initialize
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center text-red-500">
+          <p className="text-lg mb-2">Failed to load database</p>
+          <p className="text-sm">{error}</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div
@@ -265,11 +395,11 @@ const App = (): JSX.Element => {
               editingFolder={editingFolder}
               setEditingFolder={setEditingFolder}
               onAddProject={addProject}
-              onUpdateProject={updateProject}
-              onDeleteProject={deleteProject}
+              onUpdateProject={() => {}} // TODO: Implement updateProject
+              onDeleteProject={handleDeleteProject}
               onAddFolder={addFolder}
-              onUpdateFolder={updateFolder}
-              onDeleteFolder={deleteFolder}
+              onUpdateFolder={() => {}} // TODO: Implement updateFolder
+              onDeleteFolder={handleDeleteFolder}
               getFolderById={getFolderById}
               isDarkMode={isDarkMode}
             />
@@ -282,14 +412,14 @@ const App = (): JSX.Element => {
               priorityColors={priorityColors}
               isDarkMode={isDarkMode}
               projects={projects}
-              onToggleTask={toggleTask}
-              onToggleSubtask={toggleSubtask}
+              onToggleTask={handleToggleTask}
+              onToggleSubtask={handleToggleSubtask}
               onToggleExpanded={toggleExpanded}
               onStartEdit={startEdit}
               onSaveEdit={saveEdit}
               onCancelEdit={() => setEditingTask(null)}
               onEditingTaskChange={setEditingTask}
-              onDeleteTask={deleteTask}
+              onDeleteTask={handleDeleteTask}
               formatDate={formatDate}
               isOverdue={isOverdue}
               getTagColor={getTagColor}
