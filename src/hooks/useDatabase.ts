@@ -265,6 +265,36 @@ export const useDatabase = () => {
       try {
         console.log("useDatabase.createTask called with:", taskData);
         setError(null);
+
+        // Check if we're in Tauri context
+        const isInTauri =
+          typeof window !== "undefined" && "__TAURI__" in window;
+
+        if (!isInTauri) {
+          // Handle demo data locally
+          const newTaskId = Date.now().toString();
+          const newTask = {
+            id: newTaskId,
+            title: taskData.title,
+            description: taskData.description || "",
+            dueDate: taskData.dueDate || "",
+            priority: taskData.priority || "medium",
+            completed: false,
+            subtasks: (taskData.subtasks || []).map(
+              (subtaskText: string, index: number) => ({
+                id: `${newTaskId}-${index + 1}`,
+                text: subtaskText,
+                completed: false,
+              })
+            ),
+            projectId: taskData.projectId,
+            tags: taskData.tags || [],
+          };
+
+          setTasks((prevTasks) => [...prevTasks, newTask]);
+          return newTaskId;
+        }
+
         const backendTask = convertToBackendTask(taskData);
         console.log("Converted to backend format:", backendTask);
         const taskId = await taskService.createTask(backendTask);
@@ -329,6 +359,19 @@ export const useDatabase = () => {
     async (taskId: string) => {
       try {
         setError(null);
+
+        // Check if we're in Tauri context
+        const isInTauri =
+          typeof window !== "undefined" && "__TAURI__" in window;
+
+        if (!isInTauri) {
+          // Handle demo data locally
+          setTasks((prevTasks) =>
+            prevTasks.filter((task) => task.id !== taskId)
+          );
+          return;
+        }
+
         await taskService.deleteTask(taskId);
         await loadAllData(); // Reload all data to remove the deleted task
       } catch (err) {
@@ -343,6 +386,21 @@ export const useDatabase = () => {
     async (taskId: string, completed: boolean) => {
       try {
         setError(null);
+
+        // Check if we're in Tauri context
+        const isInTauri =
+          typeof window !== "undefined" && "__TAURI__" in window;
+
+        if (!isInTauri) {
+          // Handle demo data locally
+          setTasks((prevTasks) =>
+            prevTasks.map((task) =>
+              task.id === taskId ? { ...task, completed } : task
+            )
+          );
+          return;
+        }
+
         await taskService.toggleTaskCompletion(taskId, completed);
         await loadAllData(); // Reload all data to get the updated task
       } catch (err) {
@@ -361,6 +419,24 @@ export const useDatabase = () => {
     async (subtaskId: string, completed: boolean) => {
       try {
         setError(null);
+
+        // Check if we're in Tauri context
+        const isInTauri =
+          typeof window !== "undefined" && "__TAURI__" in window;
+
+        if (!isInTauri) {
+          // Handle demo data locally
+          setTasks((prevTasks) =>
+            prevTasks.map((task) => ({
+              ...task,
+              subtasks: task.subtasks.map((subtask) =>
+                subtask.id === subtaskId ? { ...subtask, completed } : subtask
+              ),
+            }))
+          );
+          return;
+        }
+
         await taskService.toggleSubtaskCompletion(subtaskId, completed);
         await loadAllData(); // Reload all data to get the updated subtask
       } catch (err) {
