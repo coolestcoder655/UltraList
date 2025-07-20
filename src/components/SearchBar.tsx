@@ -55,22 +55,22 @@ const SearchBar: React.FC<SearchBarProps> = ({
 
     // Check if user is typing a filter prefix
     const filterPrefixes = ["priority", "project", "status", "due"];
-    
+
     // Priority filter - show just "priority" as option
     if ("priority".includes(lastWord.toLowerCase()) && lastWord.length > 0) {
       suggestions.push("priority");
     }
-    
+
     // Project filter - show just "project" as option
     if ("project".includes(lastWord.toLowerCase()) && lastWord.length > 0) {
       suggestions.push("project");
     }
-    
+
     // Status filter - show just "status" as option
     if ("status".includes(lastWord.toLowerCase()) && lastWord.length > 0) {
       suggestions.push("status");
     }
-    
+
     // Due filter - show just "due" as option
     if ("due".includes(lastWord.toLowerCase()) && lastWord.length > 0) {
       suggestions.push("due");
@@ -84,7 +84,10 @@ const SearchBar: React.FC<SearchBarProps> = ({
           t.toLowerCase().includes(lastWord.toLowerCase())
         )
       );
-    } else if (lastWord && !filterPrefixes.some(prefix => prefix.includes(lastWord.toLowerCase()))) {
+    } else if (
+      lastWord &&
+      !filterPrefixes.some((prefix) => prefix.includes(lastWord.toLowerCase()))
+    ) {
       // Also show tags without # prefix when not typing filter prefixes
       const tagSuggestions = Array.from(allTags).map((tag) => `#${tag}`);
       suggestions.push(
@@ -107,7 +110,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
       case "due":
         return ["today", "overdue"];
       case "project":
-        return projects.map(p => p.name.toLowerCase());
+        return projects.map((p) => p.name.toLowerCase());
       default:
         return [];
     }
@@ -122,7 +125,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
     setSuggestions(newSuggestions);
     setShowSuggestions(newSuggestions.length > 0);
     setActiveSuggestionIndex(-1);
-    
+
     // Close secondary dropdown when typing
     setShowSecondaryDropdown(false);
     setPendingPrefix("");
@@ -137,7 +140,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
   // Handle suggestion selection
   const applySuggestion = (suggestion: string) => {
     const filterTypes = ["priority", "project", "status", "due"];
-    
+
     if (filterTypes.includes(suggestion)) {
       // This is a filter type, show secondary dropdown
       setPendingPrefix(suggestion);
@@ -174,13 +177,13 @@ const SearchBar: React.FC<SearchBarProps> = ({
       switch (e.key) {
         case "ArrowDown":
           e.preventDefault();
-          setActiveSecondaryIndex(prev => 
+          setActiveSecondaryIndex((prev) =>
             prev < secondaryOptions.length - 1 ? prev + 1 : 0
           );
           break;
         case "ArrowUp":
           e.preventDefault();
-          setActiveSecondaryIndex(prev => 
+          setActiveSecondaryIndex((prev) =>
             prev > 0 ? prev - 1 : secondaryOptions.length - 1
           );
           break;
@@ -323,7 +326,9 @@ const SearchBar: React.FC<SearchBarProps> = ({
                   }`}
                 >
                   <span className="font-mono text-sm">{suggestion}</span>
-                  {["priority", "project", "status", "due"].includes(suggestion) && (
+                  {["priority", "project", "status", "due"].includes(
+                    suggestion
+                  ) && (
                     <span
                       className={`ml-2 text-xs ${
                         isDarkMode ? "text-gray-400" : "text-gray-500"
