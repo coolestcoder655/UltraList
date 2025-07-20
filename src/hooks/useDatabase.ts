@@ -105,13 +105,38 @@ export const useDatabase = () => {
     async (taskId: string, updates: any) => {
       try {
         setError(null);
-        await taskService.updateTask({
+
+        // Prepare the request object with proper type handling
+        const updateRequest: any = {
           id: taskId,
-          ...updates,
-          due_date: updates.dueDate || undefined,
-          project_id: updates.projectId || undefined,
-          subtasks: updates.subtasks?.map((st: any) => st.text),
-        });
+        };
+
+        // Only include fields that are actually being updated
+        if (updates.title !== undefined) updateRequest.title = updates.title;
+        if (updates.description !== undefined)
+          updateRequest.description = updates.description;
+        if (updates.dueDate !== undefined) {
+          updateRequest.due_date = updates.dueDate || null;
+        }
+        if (updates.priority !== undefined)
+          updateRequest.priority = updates.priority;
+        if (updates.projectId !== undefined) {
+          updateRequest.project_id = updates.projectId || null;
+        }
+        if (updates.completed !== undefined)
+          updateRequest.completed = updates.completed;
+        if (updates.subtasks !== undefined) {
+          updateRequest.subtasks = Array.isArray(updates.subtasks)
+            ? updates.subtasks.map((st: any) =>
+                typeof st === "string" ? st : st.text
+              )
+            : [];
+        }
+        if (updates.tags !== undefined) {
+          updateRequest.tags = Array.isArray(updates.tags) ? updates.tags : [];
+        }
+
+        await taskService.updateTask(updateRequest);
         await loadAllData(); // Reload all data to get the updated task
       } catch (err) {
         setError(err instanceof Error ? err.message : "Failed to update task");

@@ -28,6 +28,7 @@ const App = (): JSX.Element => {
     updateTask,
     deleteTask,
     toggleTaskCompletion,
+    toggleSubtaskCompletion,
     createProject,
     deleteProject,
     createFolder,
@@ -127,7 +128,7 @@ const App = (): JSX.Element => {
     if (!editingTask?.title.trim()) return;
 
     try {
-      await updateTask(editingTask.id.toString(), {
+      await updateTask(editingTask.id, {
         title: editingTask.title,
         description: editingTask.description,
         dueDate: editingTask.dueDate,
@@ -247,11 +248,11 @@ const App = (): JSX.Element => {
     }
   };
 
-  const handleToggleTask = async (id: number): Promise<void> => {
+  const handleToggleTask = async (id: string): Promise<void> => {
     const task = tasks.find((t) => t.id === id);
     if (task) {
       try {
-        await toggleTaskCompletion(task.id.toString(), !task.completed);
+        await toggleTaskCompletion(task.id, !task.completed);
       } catch (error) {
         console.error("Failed to toggle task:", error);
       }
@@ -259,16 +260,15 @@ const App = (): JSX.Element => {
   };
 
   const handleToggleSubtask = async (
-    taskId: number,
-    subtaskId: number
+    taskId: string,
+    subtaskId: string
   ): Promise<void> => {
     const task = tasks.find((t) => t.id === taskId);
     if (task) {
       const subtask = task.subtasks.find((st) => st.id === subtaskId);
       if (subtask) {
         try {
-          // Note: This requires subtask database ID, we'll need to modify this
-          console.log("Subtask toggle not yet implemented for database");
+          await toggleSubtaskCompletion(subtask.id, !subtask.completed);
         } catch (error) {
           console.error("Failed to toggle subtask:", error);
         }
@@ -276,9 +276,9 @@ const App = (): JSX.Element => {
     }
   };
 
-  const handleDeleteTask = async (id: number): Promise<void> => {
+  const handleDeleteTask = async (id: string): Promise<void> => {
     try {
-      await deleteTask(id.toString());
+      await deleteTask(id);
     } catch (error) {
       console.error("Failed to delete task:", error);
     }

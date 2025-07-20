@@ -5,10 +5,10 @@ export const useTaskFiltering = () => {
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [filterBy] = useState<FilterBy>("all");
   const [selectedProjectId] = useState<number | null>(null);
-  const [expandedTasks, setExpandedTasks] = useState<Set<number>>(new Set());
+  const [expandedTasks, setExpandedTasks] = useState<Set<string>>(new Set());
 
-  const toggleExpanded = (id: number): void => {
-    const newExpanded: Set<number> = new Set(expandedTasks);
+  const toggleExpanded = (id: string): void => {
+    const newExpanded: Set<string> = new Set(expandedTasks);
     if (newExpanded.has(id)) {
       newExpanded.delete(id);
     } else {

@@ -1,6 +1,6 @@
 - [x] Integrate SQLite Across My Application. I want all data that can be saved into my database to be saved, ex: task data, dark mode/lightmode, etc...
-- [ ] **FIX DELETING TASKS**
-- [ ] **FIX UPDATING TASKS**
+- [x] **FIX DELETING TASKS**
+- [x] **FIX UPDATING TASKS**
 - [ ] Offline mode (Check what else does (not) work in offline mode)
 - [ ] Drag & drop reordering
 - [ ] Keyboard shortcuts

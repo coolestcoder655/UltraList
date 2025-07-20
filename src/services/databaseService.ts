@@ -169,7 +169,7 @@ export const settingsService = {
 // Utility function to convert between frontend and backend task formats
 export const convertToFrontendTask = (taskWithDetails: TaskWithDetails) => {
   return {
-    id: parseInt(taskWithDetails.task.id, 10) || 0, // Convert string ID to number for frontend
+    id: taskWithDetails.task.id, // Keep string ID from backend
     title: taskWithDetails.task.title,
     description: taskWithDetails.task.description,
     dueDate: taskWithDetails.task.due_date || "",
@@ -177,8 +177,8 @@ export const convertToFrontendTask = (taskWithDetails: TaskWithDetails) => {
     completed: taskWithDetails.task.completed,
     projectId: taskWithDetails.task.project_id || undefined,
     tags: taskWithDetails.tags,
-    subtasks: taskWithDetails.subtasks.map((subtask, index) => ({
-      id: index, // Convert to number for frontend
+    subtasks: taskWithDetails.subtasks.map((subtask) => ({
+      id: subtask.id, // Keep string ID from backend
       text: subtask.text,
       completed: subtask.completed,
     })),

@@ -1,7 +1,7 @@
 // Shared types for the Todo List application
 
 export interface Subtask {
-  id: number;
+  id: string;
   text: string;
   completed: boolean;
 }
@@ -22,7 +22,7 @@ export interface Project {
 }
 
 export interface Task {
-  id: number;
+  id: string;
   title: string;
   description: string;
   dueDate: string;
@@ -66,7 +66,7 @@ export interface NewTask {
 }
 
 export interface EditingTask {
-  id: number;
+  id: string;
   title: string;
   description: string;
   dueDate: string;

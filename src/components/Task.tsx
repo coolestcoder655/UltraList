@@ -19,18 +19,18 @@ import type {
 interface TaskProps {
   task: Task;
   editingTask: EditingTask | null;
-  expandedTasks: Set<number>;
+  expandedTasks: Set<string>;
   priorityColors: PriorityColors;
   isDarkMode: boolean;
   projects: Project[];
-  onToggleTask: (id: number) => void;
-  onToggleSubtask: (taskId: number, subtaskId: number) => void;
-  onToggleExpanded: (id: number) => void;
+  onToggleTask: (id: string) => void;
+  onToggleSubtask: (taskId: string, subtaskId: string) => void;
+  onToggleExpanded: (id: string) => void;
   onStartEdit: (task: Task) => void;
   onSaveEdit: () => void;
   onCancelEdit: () => void;
   onEditingTaskChange: (updatedTask: EditingTask) => void;
-  onDeleteTask: (id: number) => void;
+  onDeleteTask: (id: string) => void;
   formatDate: (dateString: string) => string;
   isOverdue: (dateString: string) => boolean;
   getTagColor: (tag: string) => string;
