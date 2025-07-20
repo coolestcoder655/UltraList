@@ -315,6 +315,50 @@ export const useDatabase = () => {
       try {
         setError(null);
 
+        // Check if we're in Tauri context
+        const isInTauri =
+          typeof window !== "undefined" && "__TAURI__" in window;
+
+        if (!isInTauri) {
+          // Handle demo data locally
+          setTasks((prevTasks) =>
+            prevTasks.map((task) => {
+              if (task.id === taskId) {
+                const updatedTask = { ...task };
+                
+                // Update fields that are provided
+                if (updates.title !== undefined) updatedTask.title = updates.title;
+                if (updates.description !== undefined) updatedTask.description = updates.description;
+                if (updates.dueDate !== undefined) updatedTask.dueDate = updates.dueDate;
+                if (updates.priority !== undefined) updatedTask.priority = updates.priority;
+                if (updates.projectId !== undefined) updatedTask.projectId = updates.projectId;
+                if (updates.completed !== undefined) updatedTask.completed = updates.completed;
+                if (updates.tags !== undefined) updatedTask.tags = updates.tags;
+                if (updates.subtasks !== undefined) {
+                  // Convert subtask strings to subtask objects
+                  updatedTask.subtasks = Array.isArray(updates.subtasks)
+                    ? updates.subtasks.map((st: any, index: number) => {
+                        if (typeof st === "string") {
+                          return {
+                            id: `${taskId}-${index + 1}`,
+                            text: st,
+                            completed: false,
+                          };
+                        } else {
+                          return st;
+                        }
+                      })
+                    : updatedTask.subtasks;
+                }
+                
+                return updatedTask;
+              }
+              return task;
+            })
+          );
+          return;
+        }
+
         // Prepare the request object with proper type handling
         const updateRequest: any = {
           id: taskId,
