@@ -1,4 +1,12 @@
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
+
+mod database;
+mod commands;
+
+use database::Database;
+use commands::*;
+use std::sync::Mutex;
+
 #[tauri::command]
 fn greet(name: &str) -> String {
     format!("Hello, {}! You've been greeted from Rust!", name)
@@ -6,9 +14,39 @@ fn greet(name: &str) -> String {
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
+    // Initialize database
+    let database = Database::new().expect("Failed to initialize database");
+    let db_state = Mutex::new(database);
+
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
-        .invoke_handler(tauri::generate_handler![greet])
+        .manage(db_state)
+        .invoke_handler(tauri::generate_handler![
+            greet,
+            // Task commands
+            create_task,
+            get_all_tasks,
+            update_task,
+            delete_task,
+            toggle_task_completion,
+            // Subtask commands
+            toggle_subtask_completion,
+            // Project commands
+            create_project,
+            get_all_projects,
+            delete_project,
+            // Folder commands
+            create_folder,
+            get_all_folders,
+            delete_folder,
+            // Tag commands
+            get_all_tags,
+            // Settings commands
+            set_theme,
+            get_theme,
+            save_setting,
+            get_setting
+        ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
