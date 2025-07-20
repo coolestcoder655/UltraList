@@ -1,12 +1,9 @@
 - [x] Integrate SQLite Across My Application. I want all data that can be saved into my database to be saved, ex: task data, dark mode/lightmode, etc...
-- [ ] Offline mode
-- [ ] Voice input / dictation
+- [ ] FIX DELETING TASKS
+- [ ] FIX UPDATING TASKS
+- [ ] Offline mode (Check what else does (not) work in offline mode)
 - [ ] Drag & drop reordering
 - [ ] Keyboard shortcuts
-- [ ] Touch-friendly mobile UI
-- [ ] Accessibility support (screen readers, contrast, etc.)
-- [ ] Quick add from notification bar
-- [ ] Multi-language support
 - [ ] Natural language input (e.g., “Buy eggs tomorrow at 5pm”)
 - [ ] Kanban view (Trello-style boards)
 - [ ] Gantt chart (for project planning)
@@ -14,6 +11,4 @@
 - [ ] Pomodoro timer
 - [ ] Progress tracking (% complete)
 - [ ] Focus mode (hide everything except 1 task)
-- [ ] Daily/weekly review view
 - [ ] Backlog / someday list
-- [ ] Task dependencies (e.g., A must be done before B)
