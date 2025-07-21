@@ -12,6 +12,7 @@ import {
   Code,
   Info,
   Archive,
+  Target,
 } from "lucide-react";
 import { ViewMode } from "../types";
 
@@ -44,6 +45,7 @@ const Header: React.FC<HeaderProps> = ({
     { mode: "gantt" as ViewMode, icon: BarChart3, label: "Gantt" },
     { mode: "eisenhower" as ViewMode, icon: Grid3X3, label: "Matrix" },
     { mode: "pomodoro" as ViewMode, icon: Timer, label: "Pomodoro" },
+    { mode: "focus" as ViewMode, icon: Target, label: "Focus" },
     { mode: "backlog" as ViewMode, icon: Archive, label: "Backlog" },
   ];
 
@@ -51,11 +53,10 @@ const Header: React.FC<HeaderProps> = ({
     <>
       {/* Header Section */}
       <div
-        className={`p-6 text-white relative ${
-          isDarkMode
+        className={`p-6 text-white relative ${isDarkMode
             ? "bg-gradient-to-r from-gray-700 to-gray-600"
             : "bg-gradient-to-r from-blue-600 to-indigo-600"
-        }`}
+          }`}
       >
         <div className="flex justify-between items-start">
           <div>
@@ -67,11 +68,10 @@ const Header: React.FC<HeaderProps> = ({
           <div className="flex items-center gap-3">
             <button
               onClick={onShowKeyboardShortcuts}
-              className={`p-2 rounded-lg transition-all duration-300 hover:scale-110 ${
-                isDarkMode
+              className={`p-2 rounded-lg transition-all duration-300 hover:scale-110 ${isDarkMode
                   ? "bg-gray-600 hover:bg-gray-500 border border-gray-500 hover:border-gray-400"
                   : "bg-blue-500 hover:bg-blue-400 border border-blue-400 hover:border-blue-300"
-              }`}
+                }`}
               title="Keyboard shortcuts"
             >
               <Info size={20} className="text-white" />
@@ -79,11 +79,10 @@ const Header: React.FC<HeaderProps> = ({
 
             <button
               onClick={onToggleDarkMode}
-              className={`p-2 rounded-lg transition-all duration-300 hover:scale-110 ${
-                isDarkMode
+              className={`p-2 rounded-lg transition-all duration-300 hover:scale-110 ${isDarkMode
                   ? "bg-gray-600 hover:bg-gray-500 border border-gray-500 hover:border-gray-400"
                   : "bg-blue-500 hover:bg-blue-400 border border-blue-400 hover:border-blue-300"
-              }`}
+                }`}
               title={`Switch to ${isDarkMode ? "light" : "dark"} mode`}
             >
               {isDarkMode ? (
@@ -95,18 +94,16 @@ const Header: React.FC<HeaderProps> = ({
 
             <button
               onClick={onToggleDevMode}
-              className={`p-2 rounded-lg transition-all duration-300 hover:scale-110 ${
-                devMode
+              className={`p-2 rounded-lg transition-all duration-300 hover:scale-110 ${devMode
                   ? isDarkMode
                     ? "bg-green-600 hover:bg-green-500 border border-green-500 hover:border-green-400"
                     : "bg-green-500 hover:bg-green-400 border border-green-400 hover:border-green-300"
                   : isDarkMode
-                  ? "bg-gray-600 hover:bg-gray-500 border border-gray-500 hover:border-gray-400"
-                  : "bg-blue-500 hover:bg-blue-400 border border-blue-400 hover:border-blue-300"
-              }`}
-              title={`${
-                devMode ? "Disable" : "Enable"
-              } developer mode (shows debug buttons)`}
+                    ? "bg-gray-600 hover:bg-gray-500 border border-gray-500 hover:border-gray-400"
+                    : "bg-blue-500 hover:bg-blue-400 border border-blue-400 hover:border-blue-300"
+                }`}
+              title={`${devMode ? "Disable" : "Enable"
+                } developer mode (shows debug buttons)`}
             >
               <Code
                 size={20}
@@ -114,8 +111,8 @@ const Header: React.FC<HeaderProps> = ({
                   devMode
                     ? "text-white"
                     : isDarkMode
-                    ? "text-gray-300"
-                    : "text-white"
+                      ? "text-gray-300"
+                      : "text-white"
                 }
               />
             </button>
@@ -128,11 +125,10 @@ const Header: React.FC<HeaderProps> = ({
         <div className="flex flex-wrap gap-4 mb-6">
           <button
             onClick={onShowAddForm}
-            className={`px-4 py-2 rounded-lg flex items-center gap-2 transition-all duration-300 hover:scale-105 transform ${
-              isDarkMode
+            className={`px-4 py-2 rounded-lg flex items-center gap-2 transition-all duration-300 hover:scale-105 transform ${isDarkMode
                 ? "bg-blue-600 hover:bg-blue-700 text-white shadow-lg hover:shadow-xl"
                 : "bg-blue-500 hover:bg-blue-600 text-white shadow-lg hover:shadow-xl"
-            }`}
+              }`}
           >
             <Plus size={16} />
             Add Task
@@ -140,11 +136,10 @@ const Header: React.FC<HeaderProps> = ({
 
           <button
             onClick={onShowProjectForm}
-            className={`px-4 py-2 rounded-lg flex items-center gap-2 transition-all duration-300 hover:scale-105 transform ${
-              isDarkMode
+            className={`px-4 py-2 rounded-lg flex items-center gap-2 transition-all duration-300 hover:scale-105 transform ${isDarkMode
                 ? "bg-purple-600 hover:bg-purple-700 text-white shadow-lg hover:shadow-xl"
                 : "bg-purple-500 hover:bg-purple-600 text-white shadow-lg hover:shadow-xl"
-            }`}
+              }`}
           >
             <FolderPlus size={16} />
             Projects/Folders
@@ -154,9 +149,8 @@ const Header: React.FC<HeaderProps> = ({
         {/* View Mode Selector */}
         <div className="mb-4">
           <h3
-            className={`text-sm font-medium mb-3 ${
-              isDarkMode ? "text-gray-300" : "text-gray-700"
-            }`}
+            className={`text-sm font-medium mb-3 ${isDarkMode ? "text-gray-300" : "text-gray-700"
+              }`}
           >
             View Mode
           </h3>
@@ -165,15 +159,14 @@ const Header: React.FC<HeaderProps> = ({
               <button
                 key={mode}
                 onClick={() => onViewModeChange(mode)}
-                className={`px-3 py-2 rounded-lg flex items-center gap-2 text-sm transition-all duration-300 hover:scale-105 transform ${
-                  viewMode === mode
+                className={`px-3 py-2 rounded-lg flex items-center gap-2 text-sm transition-all duration-300 hover:scale-105 transform ${viewMode === mode
                     ? isDarkMode
                       ? "bg-blue-600 text-white shadow-lg"
                       : "bg-blue-500 text-white shadow-lg"
                     : isDarkMode
-                    ? "bg-gray-700 text-gray-300 hover:bg-gray-600 hover:shadow-md"
-                    : "bg-gray-100 text-gray-700 hover:bg-gray-200 hover:shadow-md"
-                }`}
+                      ? "bg-gray-700 text-gray-300 hover:bg-gray-600 hover:shadow-md"
+                      : "bg-gray-100 text-gray-700 hover:bg-gray-200 hover:shadow-md"
+                  }`}
               >
                 <Icon size={14} />
                 {label}

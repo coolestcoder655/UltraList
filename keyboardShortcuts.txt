@@ -22,6 +22,9 @@
 <Shortcut>: Alt + P  
 <Action>: Open Pomodoro Timer
 
+<Shortcut>: Alt + F  
+<Action>: Switch to Focus Mode
+
 <Shortcut>: Alt + S  
 <Action>: Start selected Pomodoro session
 

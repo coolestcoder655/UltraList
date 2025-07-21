@@ -8,6 +8,7 @@ import KanbanView from "./components/KanbanView";
 import GanttView from "./components/GanttView";
 import EisenhowerView from "./components/EisenhowerView";
 import PomodoroView from "./components/PomodoroView";
+import FocusView from "./components/FocusView";
 import BacklogView from "./components/BacklogView";
 import ConfirmationModal from "./components/ConfirmationModal";
 import KeyboardShortcutsModal from "./components/KeyboardShortcutsModal";
@@ -136,8 +137,7 @@ const App = (): JSX.Element => {
       console.error("Failed to create task:", error);
       // Show user-friendly error message
       alert(
-        `Failed to create task: ${
-          error instanceof Error ? error.message : "Unknown error"
+        `Failed to create task: ${error instanceof Error ? error.message : "Unknown error"
         }`
       );
     }
@@ -464,6 +464,7 @@ const App = (): JSX.Element => {
     onSwitchToGanttView: () => setViewMode("gantt"),
     onSwitchToEisenhowerView: () => setViewMode("eisenhower"),
     onSwitchToPomodoroView: () => setViewMode("pomodoro"),
+    onSwitchToFocusView: () => setViewMode("focus"),
     onStartPomodoroSession: () => {
       // Switch to pomodoro and start session - could be enhanced
       setViewMode("pomodoro");
@@ -524,23 +525,20 @@ const App = (): JSX.Element => {
           <p className="text-lg mb-2">Unable to Access Data</p>
           <p className="text-sm">{error}</p>
           <div
-            className={`mt-6 p-4 rounded-lg border shadow-sm ${
-              isDarkMode
+            className={`mt-6 p-4 rounded-lg border shadow-sm ${isDarkMode
                 ? "bg-gray-800 border-gray-700"
                 : "bg-gray-100 border-gray-200"
-            }`}
+              }`}
           >
             <p
-              className={`text-sm mb-2 ${
-                isDarkMode ? "text-gray-300" : "text-gray-700"
-              }`}
+              className={`text-sm mb-2 ${isDarkMode ? "text-gray-300" : "text-gray-700"
+                }`}
             >
               <span className="font-semibold">Troubleshooting Tips:</span>
             </p>
             <ul
-              className={`list-disc list-inside text-xs mb-2 space-y-1 ${
-                isDarkMode ? "text-gray-400" : "text-gray-600"
-              }`}
+              className={`list-disc list-inside text-xs mb-2 space-y-1 ${isDarkMode ? "text-gray-400" : "text-gray-600"
+                }`}
             >
               <li>
                 Make sure UltraList is running in{" "}
@@ -550,25 +548,22 @@ const App = (): JSX.Element => {
               <li>Check your internet connection and system permissions.</li>
             </ul>
             <p
-              className={`text-xs ${
-                isDarkMode ? "text-gray-400" : "text-gray-500"
-              }`}
+              className={`text-xs ${isDarkMode ? "text-gray-400" : "text-gray-500"
+                }`}
             >
               If you continue to see this error, please open an issue on our{" "}
               <a
                 href="https://github.com/coolestcoder655/UltraList"
-                className={`underline hover:text-blue-700 dark:hover:text-blue-300 ${
-                  isDarkMode ? "text-blue-400" : "text-blue-500"
-                }`}
+                className={`underline hover:text-blue-700 dark:hover:text-blue-300 ${isDarkMode ? "text-blue-400" : "text-blue-500"
+                  }`}
                 target="_blank"
                 rel="noopener noreferrer"
               >
                 GitHub repository
               </a>
               <span
-                className={`block mt-2 text-xs ${
-                  isDarkMode ? "text-gray-400" : "text-gray-500"
-                }`}
+                className={`block mt-2 text-xs ${isDarkMode ? "text-gray-400" : "text-gray-500"
+                  }`}
               ></span>{" "}
               with details about your environment and steps to reproduce the
               issue.
@@ -627,15 +622,13 @@ const App = (): JSX.Element => {
 
   return (
     <div
-      className={`min-h-screen transition-all duration-500 ease-in-out ${
-        isDarkMode ? "bg-gray-900" : "bg-gray-50"
-      }`}
+      className={`min-h-screen transition-all duration-500 ease-in-out ${isDarkMode ? "bg-gray-900" : "bg-gray-50"
+        }`}
     >
       <div className="h-full">
         <div
-          className={`h-full transition-all duration-300 ${
-            isDarkMode ? "bg-gray-800" : "bg-white"
-          }`}
+          className={`h-full transition-all duration-300 ${isDarkMode ? "bg-gray-800" : "bg-white"
+            }`}
         >
           <Header
             isDarkMode={isDarkMode}
@@ -715,10 +708,10 @@ const App = (): JSX.Element => {
               editingFolder={editingFolder}
               setEditingFolder={setEditingFolder}
               onAddProject={addProject}
-              onUpdateProject={() => {}} // TODO: Implement updateProject
+              onUpdateProject={() => { }} // TODO: Implement updateProject
               onDeleteProject={handleDeleteProject}
               onAddFolder={addFolder}
-              onUpdateFolder={() => {}} // TODO: Implement updateFolder
+              onUpdateFolder={() => { }} // TODO: Implement updateFolder
               onDeleteFolder={handleDeleteFolder}
               getFolderById={getFolderById}
               isDarkMode={isDarkMode}
@@ -801,6 +794,21 @@ const App = (): JSX.Element => {
               />
             )}
 
+            {viewMode === "focus" && (
+              <FocusView
+                tasks={sortedTasks}
+                projects={projects}
+                isDarkMode={isDarkMode}
+                onStartEdit={startEdit}
+                onToggleTask={handleToggleTask}
+                onToggleSubtask={handleToggleSubtask}
+                formatDate={formatDate}
+                isOverdue={isOverdue}
+                getTagColor={getTagColor}
+                priorityColors={priorityColors}
+              />
+            )}
+
             {viewMode === "backlog" && (
               <BacklogView
                 tasks={sortedTasks}
@@ -835,11 +843,10 @@ const App = (): JSX.Element => {
         <div className="fixed bottom-4 right-4 flex gap-2">
           <button
             onClick={handleTauriDiagnostic}
-            className={`px-4 py-2 rounded-lg shadow-lg transition-all duration-200 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 ${
-              isDarkMode
+            className={`px-4 py-2 rounded-lg shadow-lg transition-all duration-200 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 ${isDarkMode
                 ? "bg-red-600 hover:bg-red-500 text-white focus:ring-red-500"
                 : "bg-red-500 hover:bg-red-400 text-white focus:ring-red-300"
-            }`}
+              }`}
             title="Run Tauri context diagnostic (check console - F12)"
           >
             <svg
@@ -860,11 +867,10 @@ const App = (): JSX.Element => {
           </button>
           <button
             onClick={handleViewLogs}
-            className={`px-4 py-2 rounded-lg shadow-lg transition-all duration-200 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 ${
-              isDarkMode
+            className={`px-4 py-2 rounded-lg shadow-lg transition-all duration-200 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 ${isDarkMode
                 ? "bg-gray-700 hover:bg-gray-600 text-gray-300 focus:ring-gray-500"
                 : "bg-white hover:bg-gray-50 text-gray-700 focus:ring-gray-300 border border-gray-200"
-            }`}
+              }`}
             title="Open developer debug logs (for debugging and troubleshooting)"
           >
             <svg

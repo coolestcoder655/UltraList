@@ -9,6 +9,7 @@ interface KeyboardShortcutsConfig {
   onSwitchToGanttView: () => void;
   onSwitchToEisenhowerView: () => void;
   onSwitchToPomodoroView: () => void;
+  onSwitchToFocusView: () => void;
   onStartPomodoroSession: () => void;
   onSwitchToNLPMode: () => void;
   onRefreshView: () => void;
@@ -68,6 +69,10 @@ export const useKeyboardShortcuts = (config: KeyboardShortcutsConfig) => {
         case "p":
           event.preventDefault();
           config.onSwitchToPomodoroView();
+          break;
+        case "f":
+          event.preventDefault();
+          config.onSwitchToFocusView();
           break;
         case "s":
           event.preventDefault();
