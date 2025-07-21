@@ -70,7 +70,9 @@ const AutocompleteSuggestions: React.FC<AutocompleteSuggestionsProps> = ({
               ? isDarkMode
                 ? "bg-blue-600 text-white shadow-md"
                 : "bg-blue-500 text-white shadow-md"
-              : "hover:bg-gray-100 dark:hover:bg-gray-700"
+              : isDarkMode
+              ? "hover:bg-gray-700"
+              : "hover:bg-gray-100"
           } ${index === 0 ? "rounded-t-lg" : ""} ${
             index === suggestions.length - 1 ? "rounded-b-lg" : ""
           }`}

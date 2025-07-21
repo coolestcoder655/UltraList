@@ -8,6 +8,7 @@ import KanbanView from "./components/KanbanView";
 import GanttView from "./components/GanttView";
 import EisenhowerView from "./components/EisenhowerView";
 import PomodoroView from "./components/PomodoroView";
+import ConfirmationModal from "./components/ConfirmationModal";
 import {
   useTheme,
   useTemplates,
@@ -78,6 +79,12 @@ const App = (): JSX.Element => {
   const [showAddForm, setShowAddForm] = useState<boolean>(false);
   const [showProjectForm, setShowProjectForm] = useState<boolean>(false);
   const [viewMode, setViewMode] = useState<ViewMode>("list");
+  const [showDeleteConfirmation, setShowDeleteConfirmation] =
+    useState<boolean>(false);
+  const [taskToDelete, setTaskToDelete] = useState<{
+    id: string;
+    title: string;
+  } | null>(null);
   const [newProject, setNewProject] = useState({
     name: "",
     color: "bg-blue-500",
@@ -344,12 +351,29 @@ const App = (): JSX.Element => {
     console.log("=== END SUBTASK TOGGLE DEBUG ===");
   };
 
-  const handleDeleteTask = async (id: string): Promise<void> => {
+  const handleDeleteTask = (id: string): void => {
+    const task = tasks.find((t) => t.id === id);
+    if (task) {
+      setTaskToDelete({ id: task.id, title: task.title });
+      setShowDeleteConfirmation(true);
+    }
+  };
+
+  const confirmDeleteTask = async (): Promise<void> => {
+    if (!taskToDelete) return;
+
     try {
-      await deleteTask(id);
+      await deleteTask(taskToDelete.id);
+      setShowDeleteConfirmation(false);
+      setTaskToDelete(null);
     } catch (error) {
       console.error("Failed to delete task:", error);
     }
+  };
+
+  const cancelDeleteTask = (): void => {
+    setShowDeleteConfirmation(false);
+    setTaskToDelete(null);
   };
 
   // Use database theme instead of local state
@@ -564,6 +588,19 @@ const App = (): JSX.Element => {
           </div>
         </div>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={showDeleteConfirmation}
+        title="Delete Task"
+        message={`Are you sure you want to delete "${taskToDelete?.title}"? This action cannot be undone.`}
+        confirmText="Delete"
+        cancelText="Cancel"
+        onConfirm={confirmDeleteTask}
+        onCancel={cancelDeleteTask}
+        isDarkMode={isDarkMode}
+        isDestructive={true}
+      />
     </div>
   );
 };

@@ -17,7 +17,7 @@ const SearchHelpModal: React.FC<SearchHelpModalProps> = ({
   }
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div className="fixed inset-0 bg-black/20 backdrop-blur-sm flex items-center justify-center z-50">
       <div
         className={`max-w-2xl w-full mx-4 p-6 rounded-lg shadow-xl ${
           isDarkMode ? "bg-gray-800 text-white" : "bg-white text-gray-900"
