@@ -9,12 +9,15 @@ import {
   BarChart3,
   Grid3X3,
   Timer,
+  Code,
 } from "lucide-react";
 import { ViewMode } from "../types";
 
 interface HeaderProps {
   isDarkMode: boolean;
   onToggleDarkMode: () => void;
+  devMode: boolean;
+  onToggleDevMode: () => void;
   onShowAddForm: () => void;
   onShowProjectForm: () => void;
   viewMode: ViewMode;
@@ -24,6 +27,8 @@ interface HeaderProps {
 const Header: React.FC<HeaderProps> = ({
   isDarkMode,
   onToggleDarkMode,
+  devMode,
+  onToggleDevMode,
   onShowAddForm,
   onShowProjectForm,
   viewMode,
@@ -54,21 +59,42 @@ const Header: React.FC<HeaderProps> = ({
               Stay organized and productive
             </p>
           </div>
-          <button
-            onClick={onToggleDarkMode}
-            className={`p-2 rounded-lg transition-all duration-300 hover:scale-110 ${
-              isDarkMode
-                ? "bg-gray-600 hover:bg-gray-500 border border-gray-500 hover:border-gray-400"
-                : "bg-blue-500 hover:bg-blue-400 border border-blue-400 hover:border-blue-300"
-            }`}
-            title={`Switch to ${isDarkMode ? "light" : "dark"} mode`}
-          >
-            {isDarkMode ? (
-              <Sun size={20} className="text-yellow-300" />
-            ) : (
-              <Moon size={20} className="text-white" />
-            )}
-          </button>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={onToggleDarkMode}
+              className={`p-2 rounded-lg transition-all duration-300 hover:scale-110 ${
+                isDarkMode
+                  ? "bg-gray-600 hover:bg-gray-500 border border-gray-500 hover:border-gray-400"
+                  : "bg-blue-500 hover:bg-blue-400 border border-blue-400 hover:border-blue-300"
+              }`}
+              title={`Switch to ${isDarkMode ? "light" : "dark"} mode`}
+            >
+              {isDarkMode ? (
+                <Sun size={20} className="text-yellow-300" />
+              ) : (
+                <Moon size={20} className="text-white" />
+              )}
+            </button>
+            
+            <button
+              onClick={onToggleDevMode}
+              className={`p-2 rounded-lg transition-all duration-300 hover:scale-110 ${
+                devMode
+                  ? isDarkMode
+                    ? "bg-green-600 hover:bg-green-500 border border-green-500 hover:border-green-400"
+                    : "bg-green-500 hover:bg-green-400 border border-green-400 hover:border-green-300"
+                  : isDarkMode
+                    ? "bg-gray-600 hover:bg-gray-500 border border-gray-500 hover:border-gray-400"
+                    : "bg-blue-500 hover:bg-blue-400 border border-blue-400 hover:border-blue-300"
+              }`}
+              title={`${devMode ? "Disable" : "Enable"} developer mode (shows debug buttons)`}
+            >
+              <Code 
+                size={20} 
+                className={devMode ? "text-white" : isDarkMode ? "text-gray-300" : "text-white"} 
+              />
+            </button>
+          </div>
         </div>
       </div>
 

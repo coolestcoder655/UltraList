@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>UltraList - Developer Debug Logs</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <style>
+      body {
+        font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+        margin: 0;
+        padding: 15px;
+        background-color: #0d1117;
+        color: #c9d1d9;
+        line-height: 1.3;
+        font-size: 13px;
+      }
+      h1 {
+        color: #58a6ff;
+        margin-bottom: 15px;
+        font-size: 20px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-weight: 600;
+      }
+      .logo {
+        font-size: 20px;
+      }
+      .controls {
+        margin-bottom: 15px;
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        flex-wrap: wrap;
+        padding: 10px;
+        background-color: #161b22;
+        border-radius: 6px;
+        border: 1px solid #30363d;
+      }
+      .btn {
+        background-color: #21262d;
+        color: #f0f6fc;
+        border: 1px solid #30363d;
+        padding: 6px 12px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 12px;
+        transition: all 0.2s;
+        font-family: inherit;
+      }
+      .btn:hover {
+        background-color: #30363d;
+        border-color: #8b949e;
+      }
+      .btn-primary {
+        background-color: #238636;
+        border-color: #238636;
+      }
+      .btn-primary:hover {
+        background-color: #2ea043;
+      }
+      .btn-danger {
+        background-color: #da3633;
+        border-color: #da3633;
+      }
+      .btn-danger:hover {
+        background-color: #f85149;
+      }
+      .status {
+        color: #7d8590;
+        font-size: 11px;
+        margin-left: auto;
+      }
+      .filters {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+      }
+      .filter-checkbox {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 11px;
+      }
+      .filter-checkbox input {
+        margin: 0;
+      }
+      .logs-container {
+        background-color: #0d1117;
+        border-radius: 6px;
+        padding: 0;
+        max-height: 75vh;
+        overflow-y: auto;
+        border: 1px solid #21262d;
+        font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', 'Consolas', monospace;
+      }
+      .log-entry {
+        margin: 0;
+        padding: 4px 12px;
+        font-size: 11px;
+        word-wrap: break-word;
+        border-bottom: 1px solid #21262d;
+        transition: background-color 0.1s;
+        cursor: pointer;
+      }
+      .log-entry:hover {
+        background-color: #161b22;
+      }
+      .log-entry.selected {
+        background-color: #1c2128;
+        border-left: 3px solid #58a6ff;
+      }
+      .log-trace {
+        color: #7d8590;
+      }
+      .log-debug {
+        color: #c9d1d9;
+      }
+      .log-info {
+        color: #58a6ff;
+      }
+      .log-warn {
+        color: #d29922;
+      }
+      .log-error {
+        color: #f85149;
+      }
+      .timestamp {
+        color: #6e7681;
+        margin-right: 8px;
+        font-size: 10px;
+        min-width: 80px;
+        display: inline-block;
+      }
+      .level {
+        font-weight: 600;
+        margin-right: 8px;
+        padding: 1px 4px;
+        border-radius: 2px;
+        font-size: 9px;
+        min-width: 45px;
+        display: inline-block;
+        text-align: center;
+      }
+      .level-trace { 
+        background-color: #21262d; 
+        color: #7d8590; 
+      }
+      .level-debug { 
+        background-color: #1f6feb; 
+        color: #ffffff; 
+      }
+      .level-info { 
+        background-color: #238636; 
+        color: #ffffff; 
+      }
+      .level-warn { 
+        background-color: #bf8700; 
+        color: #ffffff; 
+      }
+      .level-error { 
+        background-color: #da3633; 
+        color: #ffffff; 
+      }
+      .message {
+        color: inherit;
+        word-break: break-all;
+      }
+      .target {
+        color: #8b949e;
+        font-size: 10px;
+        margin-left: 8px;
+        background-color: #21262d;
+        padding: 1px 4px;
+        border-radius: 2px;
+        font-style: italic;
+      }
+      .loading {
+        text-align: center;
+        color: #7d8590;
+        padding: 40px;
+        font-style: italic;
+      }
+      .error-state {
+        text-align: center;
+        color: #f85149;
+        padding: 40px;
+      }
+      .stats {
+        display: flex;
+        gap: 15px;
+        font-size: 11px;
+        color: #7d8590;
+      }
+      .stat-item {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+      }
+      .stat-count {
+        background-color: #21262d;
+        padding: 2px 6px;
+        border-radius: 3px;
+        font-weight: 600;
+      }
+      .search-box {
+        padding: 6px 10px;
+        background-color: #0d1117;
+        border: 1px solid #30363d;
+        border-radius: 4px;
+        color: #f0f6fc;
+        font-size: 12px;
+        font-family: inherit;
+        width: 200px;
+      }
+      .search-box:focus {
+        outline: none;
+        border-color: #58a6ff;
+        box-shadow: 0 0 0 2px rgba(88, 166, 255, 0.3);
+      }
+      .hidden {
+        display: none !important;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>
+      <span class="logo">🔧</span>
+      UltraList Developer Debug Logs
+    </h1>
+    
+    <div class="controls">
+      <button class="btn btn-primary" onclick="forceRefresh()">🔄 Force Refresh</button>
+      <button class="btn btn-danger" onclick="clearLogs()">🗑️ Clear</button>
+      <button class="btn" onclick="exportLogs()">📥 Export</button>
+      <button class="btn" onclick="loadFallbackLogs()">🧪 Load Test Logs</button>
+      <input type="text" class="search-box" id="searchBox" placeholder="Search logs..." onkeyup="filterLogs()">
+      
+      <div class="filters">
+        <span>Show:</span>
+        <label class="filter-checkbox">
+          <input type="checkbox" id="showTrace" checked onchange="filterLogs()">
+          <span>TRACE</span>
+        </label>
+        <label class="filter-checkbox">
+          <input type="checkbox" id="showDebug" checked onchange="filterLogs()">
+          <span>DEBUG</span>
+        </label>
+        <label class="filter-checkbox">
+          <input type="checkbox" id="showInfo" checked onchange="filterLogs()">
+          <span>INFO</span>
+        </label>
+        <label class="filter-checkbox">
+          <input type="checkbox" id="showWarn" checked onchange="filterLogs()">
+          <span>WARN</span>
+        </label>
+        <label class="filter-checkbox">
+          <input type="checkbox" id="showError" checked onchange="filterLogs()">
+          <span>ERROR</span>
+        </label>
+      </div>
+
+      <div class="stats" id="logStats">
+        <div class="stat-item">
+          <span>Total:</span>
+          <span class="stat-count" id="totalCount">0</span>
+        </div>
+        <div class="stat-item">
+          <span>Errors:</span>
+          <span class="stat-count" id="errorCount">0</span>
+        </div>
+        <div class="stat-item">
+          <span>Warnings:</span>
+          <span class="stat-count" id="warnCount">0</span>
+        </div>
+      </div>
+      
+      <span class="status" id="status">Starting up...</span>
+    </div>
+    
+    <div class="logs-container" id="logsContainer">
+      <div class="loading">🔍 Loading debug logs...</div>
+    </div>
+
+    <script>
+      // Import Tauri APIs
+      const { invoke } = window.__TAURI__.core;
+
+      let allLogs = [];
+      let filteredLogs = [];
+
+      async function loadLogs() {
+        const statusEl = document.getElementById('status');
+        const containerEl = document.getElementById('logsContainer');
+        
+        try {
+          statusEl.textContent = 'Fetching logs from Tauri backend...';
+          containerEl.innerHTML = '<div class="loading">🔄 Refreshing debug logs...</div>';
+          
+          // Check if Tauri is available
+          if (typeof window.__TAURI__ === 'undefined') {
+            throw new Error('Tauri API not available - running in web context');
+          }
+          
+          const fetchedLogs = await invoke('get_application_logs');
+          allLogs = fetchedLogs;
+          filterLogs();
+          updateStats();
+          statusEl.textContent = `Updated: ${new Date().toLocaleTimeString()} | ${allLogs.length} entries`;
+          console.log('Debug logs refreshed successfully:', allLogs.length, 'entries');
+        } catch (error) {
+          console.error('Failed to load logs:', error);
+          containerEl.innerHTML = `
+            <div class="error-state">
+              <p>❌ Failed to load debug logs</p>
+              <p><strong>Error:</strong> ${error.message || error}</p>
+              <p><strong>Context:</strong> ${typeof window.__TAURI__ !== 'undefined' ? 'Tauri available' : 'Web context - Tauri not available'}</p>
+              <p>Stack trace available in browser console (F12)</p>
+              <button class="btn btn-primary" onclick="loadLogs()">🔄 Retry</button>
+              <button class="btn" onclick="loadFallbackLogs()">📝 Load Fallback Logs</button>
+            </div>
+          `;
+          statusEl.textContent = `Error: ${error.message || 'Failed to fetch logs'}`;
+        }
+      }
+
+      function filterLogs() {
+        const searchTerm = document.getElementById('searchBox').value.toLowerCase();
+        const showTrace = document.getElementById('showTrace').checked;
+        const showDebug = document.getElementById('showDebug').checked;
+        const showInfo = document.getElementById('showInfo').checked;
+        const showWarn = document.getElementById('showWarn').checked;
+        const showError = document.getElementById('showError').checked;
+
+        filteredLogs = allLogs.filter(log => {
+          // Level filter
+          const levelMatch = (
+            (log.level === 'TRACE' && showTrace) ||
+            (log.level === 'DEBUG' && showDebug) ||
+            (log.level === 'INFO' && showInfo) ||
+            (log.level === 'WARN' && showWarn) ||
+            (log.level === 'ERROR' && showError)
+          );
+
+          // Search filter
+          const searchMatch = searchTerm === '' || 
+            log.message.toLowerCase().includes(searchTerm) ||
+            (log.target && log.target.toLowerCase().includes(searchTerm)) ||
+            log.level.toLowerCase().includes(searchTerm);
+
+          return levelMatch && searchMatch;
+        });
+
+        renderLogs();
+      }
+
+      function renderLogs() {
+        const containerEl = document.getElementById('logsContainer');
+        
+        if (filteredLogs.length === 0) {
+          containerEl.innerHTML = '<div class="loading">🔍 No logs match current filters</div>';
+          return;
+        }
+
+        const logsHtml = filteredLogs
+          .map((log, index) => {
+            const timestamp = new Date(log.timestamp).toLocaleTimeString();
+            const levelClass = `log-${log.level.toLowerCase()}`;
+            const levelBadgeClass = `level level-${log.level.toLowerCase()}`;
+            
+            return `
+              <div class="log-entry ${levelClass}" onclick="selectLog(${index})" data-index="${index}">
+                <span class="timestamp">${timestamp}</span>
+                <span class="${levelBadgeClass}">${log.level}</span>
+                <span class="message">${escapeHtml(log.message)}</span>
+                ${log.target ? `<span class="target">${escapeHtml(log.target)}</span>` : ''}
+              </div>
+            `;
+          })
+          .join('');
+
+        containerEl.innerHTML = logsHtml;
+        
+        // Auto-scroll to bottom
+        containerEl.scrollTop = containerEl.scrollHeight;
+      }
+
+      function selectLog(index) {
+        // Remove previous selection
+        document.querySelectorAll('.log-entry.selected').forEach(el => {
+          el.classList.remove('selected');
+        });
+        
+        // Add selection to clicked log
+        const logEl = document.querySelector(`[data-index="${index}"]`);
+        if (logEl) {
+          logEl.classList.add('selected');
+          
+          // Copy log details to clipboard for debugging
+          const log = filteredLogs[index];
+          const logText = `[${log.timestamp}] ${log.level}: ${log.message}${log.target ? ` (${log.target})` : ''}`;
+          navigator.clipboard.writeText(logText).then(() => {
+            console.log('Log entry copied to clipboard:', logText);
+          });
+        }
+      }
+
+      function updateStats() {
+        const totalCount = allLogs.length;
+        const errorCount = allLogs.filter(log => log.level === 'ERROR').length;
+        const warnCount = allLogs.filter(log => log.level === 'WARN').length;
+
+        document.getElementById('totalCount').textContent = totalCount;
+        document.getElementById('errorCount').textContent = errorCount;
+        document.getElementById('warnCount').textContent = warnCount;
+      }
+
+      function clearLogs() {
+        const containerEl = document.getElementById('logsContainer');
+        const statusEl = document.getElementById('status');
+        
+        // Clear the current display
+        containerEl.innerHTML = `
+          <div class="loading">
+            🗑️ Display cleared
+            <br><br>
+            <button class="btn btn-primary" onclick="forceRefresh()">🔄 Refresh to Reload</button>
+          </div>
+        `;
+        
+        // Clear internal state
+        allLogs = [];
+        filteredLogs = [];
+        updateStats();
+        
+        statusEl.textContent = 'Display cleared - click refresh to reload logs';
+        console.log('Debug logs display cleared');
+      }
+
+      async function forceRefresh() {
+        const statusEl = document.getElementById('status');
+        const containerEl = document.getElementById('logsContainer');
+        
+        try {
+          statusEl.textContent = '🔄 Force refreshing logs...';
+          containerEl.innerHTML = '<div class="loading">🔄 Force refreshing debug logs from backend...</div>';
+          
+          console.log('Force refresh initiated by user');
+          
+          // Clear existing data first
+          allLogs = [];
+          filteredLogs = [];
+          
+          // Check Tauri availability with more detailed logging
+          if (typeof window.__TAURI__ === 'undefined') {
+            console.warn('Tauri API not available in current context');
+            throw new Error('Tauri API not available - please run in desktop mode');
+          }
+          
+          console.log('Tauri API detected, invoking get_application_logs...');
+          const fetchedLogs = await invoke('get_application_logs');
+          console.log('Received logs from backend:', fetchedLogs);
+          
+          if (!Array.isArray(fetchedLogs)) {
+            throw new Error('Invalid log format received from backend');
+          }
+          
+          allLogs = fetchedLogs;
+          filterLogs();
+          updateStats();
+          
+          statusEl.textContent = `🔄 Force refresh complete: ${new Date().toLocaleTimeString()} | ${allLogs.length} entries`;
+          console.log('Force refresh completed successfully:', allLogs.length, 'entries loaded');
+          
+        } catch (error) {
+          console.error('Force refresh failed:', error);
+          containerEl.innerHTML = `
+            <div class="error-state">
+              <p>❌ Force refresh failed</p>
+              <p><strong>Error:</strong> ${error.message || error}</p>
+              <p><strong>Tauri Status:</strong> ${typeof window.__TAURI__ !== 'undefined' ? '✅ Available' : '❌ Not Available'}</p>
+              <p><strong>Context:</strong> ${window.location.href}</p>
+              <details style="margin-top: 10px; color: #7d8590;">
+                <summary style="cursor: pointer;">🔍 Technical Details</summary>
+                <pre style="font-size: 10px; margin-top: 5px;">${error.stack || 'No stack trace available'}</pre>
+              </details>
+              <div style="margin-top: 15px;">
+                <button class="btn btn-primary" onclick="forceRefresh()">🔄 Retry Force Refresh</button>
+                <button class="btn" onclick="loadFallbackLogs()">🧪 Load Test Logs</button>
+              </div>
+            </div>
+          `;
+          statusEl.textContent = `❌ Force refresh failed: ${error.message || 'Unknown error'}`;
+        }
+      }
+
+      function loadFallbackLogs() {
+        const now = new Date();
+        
+        // Create some fallback debug logs for demonstration
+        allLogs = [
+          {
+            timestamp: new Date(now.getTime() - 30000).toISOString(),
+            level: 'INFO',
+            message: 'Fallback logs loaded - Tauri backend not available',
+            target: 'logs::fallback'
+          },
+          {
+            timestamp: new Date(now.getTime() - 25000).toISOString(),
+            level: 'WARN',
+            message: 'Running in web context instead of native Tauri environment',
+            target: 'logs::context_check'
+          },
+          {
+            timestamp: new Date(now.getTime() - 20000).toISOString(),
+            level: 'DEBUG',
+            message: 'window.__TAURI__ is undefined - browser development mode detected',
+            target: 'logs::environment'
+          },
+          {
+            timestamp: new Date(now.getTime() - 15000).toISOString(),
+            level: 'ERROR',
+            message: 'invoke() function not available - native commands cannot be executed',
+            target: 'logs::tauri_commands'
+          },
+          {
+            timestamp: new Date(now.getTime() - 10000).toISOString(),
+            level: 'TRACE',
+            message: 'Developer opened debug logs window in web browser context',
+            target: 'logs::user_action'
+          },
+          {
+            timestamp: now.toISOString(),
+            level: 'INFO',
+            message: 'Fallback debug logs generated successfully for testing purposes',
+            target: 'logs::fallback_complete'
+          }
+        ];
+        
+        filterLogs();
+        updateStats();
+        document.getElementById('status').textContent = `Fallback logs loaded: ${allLogs.length} entries (demo mode)`;
+        console.log('Fallback debug logs loaded for testing');
+      }
+
+      function exportLogs() {
+        const logsText = allLogs
+          .map(log => `[${log.timestamp}] ${log.level.padEnd(5)} ${log.target || 'unknown'.padEnd(30)} | ${log.message}`)
+          .join('\n');
+        
+        const blob = new Blob([logsText], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `ultralist-debug-${new Date().toISOString().slice(0, 19)}.log`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }
+
+      function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+      }
+
+      // Auto-refresh every 10 seconds (longer for dev logs)
+      setInterval(forceRefresh, 10000);
+
+      // Initial load
+      loadLogs();
+
+      // Keyboard shortcuts
+      document.addEventListener('keydown', (e) => {
+        if (e.ctrlKey || e.metaKey) {
+          switch(e.key) {
+            case 'r':
+              e.preventDefault();
+              forceRefresh();
+              break;
+            case 'f':
+              e.preventDefault();
+              document.getElementById('searchBox').focus();
+              break;
+            case 'e':
+              e.preventDefault();
+              exportLogs();
+              break;
+          }
+        }
+      });
+    </script>
+  </body>
+</html>

@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { invoke } from "@tauri-apps/api/core";
 import {
   taskService,
   projectService,
@@ -7,10 +8,12 @@ import {
   settingsService,
   convertToFrontendTask,
   convertToBackendTask,
+  isInTauriContext,
   type TaskWithDetails,
   type DatabaseProject,
   type DatabaseFolder,
 } from "../services/databaseService";
+import { waitForTauriInitialization } from "../utils/tauriDebug";
 import type { Task, Project, Folder } from "../types";
 
 export const useDatabase = () => {
@@ -28,235 +31,125 @@ export const useDatabase = () => {
       setLoading(true);
       setError(null);
 
-      // Check if we're in Tauri context
-      const isInTauri = typeof window !== "undefined" && "__TAURI__" in window;
-
+      // Enhanced context checking with multiple approaches
       console.log("=== DATABASE LOAD DEBUG ===");
-      console.log("isInTauri:", isInTauri);
-      console.log(
-        "window.__TAURI__:",
-        typeof window !== "undefined"
-          ? !!(window as any).__TAURI__
-          : "no window"
-      );
+      console.log("invoke function available:", typeof invoke === "function");
+      console.log("window.__TAURI__ available:", typeof window !== "undefined" ? !!(window as any).__TAURI__ : "no window");
 
-      if (!isInTauri) {
-        console.log("Using demo data (not in Tauri context)");
-        // Provide demo data for web browser testing
-        const demoTasks: Task[] = [
-          {
-            id: "1",
-            title: "Design new user interface",
-            description: "Create mockups and wireframes for the new dashboard",
-            dueDate: new Date(
-              Date.now() + 2 * 24 * 60 * 60 * 1000
-            ).toISOString(), // 2 days from now
-            priority: "high",
-            completed: false,
-            subtasks: [
-              {
-                id: "1-1",
-                text: "Research competitor interfaces",
-                completed: true,
-              },
-              { id: "1-2", text: "Create initial sketches", completed: false },
-              {
-                id: "1-3",
-                text: "Design high-fidelity mockups",
-                completed: false,
-              },
-            ],
-            projectId: 1,
-            tags: ["design", "urgent", "ui"],
-          },
-          {
-            id: "2",
-            title: "Implement authentication system",
-            description: "Set up user login and registration functionality",
-            dueDate: new Date(
-              Date.now() + 7 * 24 * 60 * 60 * 1000
-            ).toISOString(), // 1 week from now
-            priority: "high",
-            completed: false,
-            subtasks: [
-              { id: "2-1", text: "Set up database schema", completed: true },
-              { id: "2-2", text: "Create login form", completed: true },
-              {
-                id: "2-3",
-                text: "Implement password hashing",
-                completed: false,
-              },
-            ],
-            projectId: 1,
-            tags: ["backend", "security"],
-          },
-          {
-            id: "3",
-            title: "Write documentation",
-            description: "Document the API endpoints and usage examples",
-            dueDate: new Date(
-              Date.now() + 14 * 24 * 60 * 60 * 1000
-            ).toISOString(), // 2 weeks from now
-            priority: "medium",
-            completed: false,
-            subtasks: [],
-            projectId: 2,
-            tags: ["docs", "api"],
-          },
-          {
-            id: "4",
-            title: "Fix mobile responsiveness",
-            description: "Ensure the app works well on mobile devices",
-            dueDate: new Date(
-              Date.now() - 1 * 24 * 60 * 60 * 1000
-            ).toISOString(), // 1 day ago (overdue)
-            priority: "medium",
-            completed: false,
-            subtasks: [
-              { id: "4-1", text: "Test on iOS", completed: false },
-              { id: "4-2", text: "Test on Android", completed: false },
-            ],
-            tags: ["mobile", "responsive"],
-          },
-          {
-            id: "5",
-            title: "Prepare presentation slides",
-            description: "Create slides for the quarterly review meeting",
-            dueDate: new Date(
-              Date.now() + 1 * 24 * 60 * 60 * 1000
-            ).toISOString(), // Tomorrow
-            priority: "low",
-            completed: false,
-            subtasks: [],
-            tags: ["presentation", "meeting"],
-          },
-          {
-            id: "6",
-            title: "Code review",
-            description: "Review pull requests from team members",
-            dueDate: "",
-            priority: "low",
-            completed: true,
-            subtasks: [
-              { id: "6-1", text: "Review PR #123", completed: true },
-              { id: "6-2", text: "Review PR #124", completed: true },
-            ],
-            projectId: 1,
-            tags: ["review", "team"],
-          },
-        ];
-
-        const demoProjects: Project[] = [
-          {
-            id: 1,
-            name: "UltraList App",
-            color: "bg-blue-500",
-            description: "Main productivity application development",
-            folderId: 1,
-          },
-          {
-            id: 2,
-            name: "Documentation",
-            color: "bg-green-500",
-            description: "User guides and API documentation",
-          },
-        ];
-
-        const demoFolders: Folder[] = [
-          {
-            id: 1,
-            name: "Active Projects",
-            color: "bg-purple-500",
-            description: "Currently active development projects",
-          },
-        ];
-
-        const demoTags = [
-          "design",
-          "urgent",
-          "ui",
-          "backend",
-          "security",
-          "docs",
-          "api",
-          "mobile",
-          "responsive",
-          "presentation",
-          "meeting",
-          "review",
-          "team",
-        ];
-
-        setTasks(demoTasks);
-        setProjects(demoProjects);
-        setFolders(demoFolders);
-        setTags(demoTags);
-        setTheme("light");
-        setLoading(false);
-        return;
+      // Try optimistic approach first - if invoke is available, try it
+      if (typeof invoke === "function") {
+        console.log("Invoke function available, attempting database operations...");
+        try {
+          await attemptDataLoad();
+          return; // Success!
+        } catch (error) {
+          console.log("Optimistic load failed, will wait for full initialization:", error);
+        }
       }
 
-      console.log("Loading data from real database...");
+      // If optimistic approach failed, wait for full Tauri initialization
+      console.log("Waiting for complete Tauri initialization...");
+      const initialized = await waitForTauriInitialization(5000);
+      
+      if (!initialized) {
+        throw new Error("Tauri initialization timeout");
+      }
 
-      const [tasksData, projectsData, foldersData, tagsData, themeData]: [
-        TaskWithDetails[],
-        DatabaseProject[],
-        DatabaseFolder[],
-        string[],
-        string
-      ] = await Promise.all([
-        taskService.getAllTasks(),
-        projectService.getAllProjects(),
-        folderService.getAllFolders(),
-        tagService.getAllTags(),
-        settingsService.getTheme(),
-      ]);
-
-      console.log("Raw tasks data from database:", tasksData);
-      console.log("First task subtasks:", tasksData[0]?.subtasks);
-
-      // Convert backend data to frontend format
-      const convertedTasks = tasksData.map(convertToFrontendTask);
-
-      console.log("Converted tasks:", convertedTasks);
-      console.log(
-        "First converted task subtasks:",
-        convertedTasks[0]?.subtasks
-      );
-      const convertedProjects: Project[] = projectsData.map(
-        (p: DatabaseProject) => ({
-          id: p.id,
-          name: p.name,
-          color: p.color,
-          description: p.description || undefined,
-          folderId: p.folder_id || undefined,
-        })
-      );
-      const convertedFolders: Folder[] = foldersData.map(
-        (f: DatabaseFolder) => ({
-          id: f.id,
-          name: f.name,
-          color: f.color,
-          description: f.description || undefined,
-        })
-      );
-
-      setTasks(convertedTasks);
-      setProjects(convertedProjects);
-      setFolders(convertedFolders);
-      setTags(tagsData);
-      setTheme(themeData as "light" | "dark");
+      // Try again after waiting
+      await attemptDataLoad();
+      
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load data");
+      console.error("Database error:", err);
+      setError("Error accessing data - database connection failed");
+      setTasks([]);
+      setProjects([]);
+      setFolders([]);
+      setTags([]);
+      setTheme("light");
       console.error("Error loading data:", err);
     } finally {
       setLoading(false);
     }
   }, []);
 
-  // Initialize data on component mount
+  // Helper function for the actual data loading
+  const attemptDataLoad = useCallback(async () => {
+    console.log("Loading data from database...");
+
+    const [tasksData, projectsData, foldersData, tagsData, themeData]: [
+      TaskWithDetails[],
+      DatabaseProject[],
+      DatabaseFolder[],
+      string[],
+      string
+    ] = await Promise.all([
+      taskService.getAllTasks(),
+      projectService.getAllProjects(),
+      folderService.getAllFolders(),
+      tagService.getAllTags(),
+      settingsService.getTheme(),
+    ]);
+
+    console.log("Raw tasks data from database:", tasksData);
+    console.log("First task subtasks:", tasksData[0]?.subtasks);
+
+    // Convert backend data to frontend format
+    const convertedTasks = tasksData.map(convertToFrontendTask);
+
+    console.log("Converted tasks:", convertedTasks);
+    console.log("First converted task subtasks:", convertedTasks[0]?.subtasks);
+    
+    const convertedProjects: Project[] = projectsData.map(
+      (p: DatabaseProject) => ({
+        id: p.id,
+        name: p.name,
+        color: p.color,
+        description: p.description || undefined,
+        folderId: p.folder_id || undefined,
+      })
+    );
+    
+    const convertedFolders: Folder[] = foldersData.map(
+      (f: DatabaseFolder) => ({
+        id: f.id,
+        name: f.name,
+        color: f.color,
+        description: f.description || undefined,
+      })
+    );
+
+    setTasks(convertedTasks);
+    setProjects(convertedProjects);
+    setFolders(convertedFolders);
+    setTags(tagsData);
+    setTheme(themeData as "light" | "dark");
+    
+    console.log("Database load completed successfully");
+  }, []);
+
+  // Initialize data on component mount with simpler, more aggressive approach
   useEffect(() => {
-    loadAllData();
+    const initializeDatabase = async () => {
+      console.log("[DB] Starting database initialization...");
+      
+      // Try immediate load first (optimistic approach)
+      try {
+        await loadAllData();
+      } catch (error) {
+        console.warn("[DB] Initial load failed, will retry...", error);
+        
+        // If that fails, wait a bit and try again
+        setTimeout(async () => {
+          try {
+            await loadAllData();
+          } catch (retryError) {
+            console.error("[DB] Retry also failed:", retryError);
+          }
+        }, 1000);
+      }
+    };
+
+    initializeDatabase();
   }, [loadAllData]);
 
   // Task operations
@@ -266,33 +159,10 @@ export const useDatabase = () => {
         console.log("useDatabase.createTask called with:", taskData);
         setError(null);
 
-        // Check if we're in Tauri context
-        const isInTauri =
-          typeof window !== "undefined" && "__TAURI__" in window;
-
-        if (!isInTauri) {
-          // Handle demo data locally
-          const newTaskId = Date.now().toString();
-          const newTask = {
-            id: newTaskId,
-            title: taskData.title,
-            description: taskData.description || "",
-            dueDate: taskData.dueDate || "",
-            priority: taskData.priority || "medium",
-            completed: false,
-            subtasks: (taskData.subtasks || []).map(
-              (subtaskText: string, index: number) => ({
-                id: `${newTaskId}-${index + 1}`,
-                text: subtaskText,
-                completed: false,
-              })
-            ),
-            projectId: taskData.projectId,
-            tags: taskData.tags || [],
-          };
-
-          setTasks((prevTasks) => [...prevTasks, newTask]);
-          return newTaskId;
+        // Check if we're in Tauri context using centralized function
+        if (!isInTauriContext()) {
+          setError("Error accessing data - application must be run in desktop mode");
+          throw new Error("Database not available - not running in Tauri context");
         }
 
         const backendTask = convertToBackendTask(taskData);
@@ -303,7 +173,7 @@ export const useDatabase = () => {
         return taskId;
       } catch (err) {
         console.error("Error in useDatabase.createTask:", err);
-        setError(err instanceof Error ? err.message : "Failed to create task");
+        setError("Error accessing data - failed to create task");
         throw err;
       }
     },
@@ -315,99 +185,54 @@ export const useDatabase = () => {
       try {
         setError(null);
 
-        // Check if we're in Tauri context and if taskService is available
-        const isInTauri =
-          typeof window !== "undefined" && "__TAURI__" in window;
-
         console.log("=== UPDATE TASK DEBUG ===");
-        console.log("isInTauri:", isInTauri);
+        console.log("isInTauriContext():", isInTauriContext());
         console.log("taskService:", taskService);
         console.log("taskService.updateTask:", taskService.updateTask);
 
-        // Try to use Tauri backend, but fall back to demo mode if anything fails
-        if (isInTauri) {
-          try {
-            // Prepare the request object with proper type handling
-            const updateRequest: any = {
-              id: taskId,
-            };
-
-            // Only include fields that are actually being updated
-            if (updates.title !== undefined) updateRequest.title = updates.title;
-            if (updates.description !== undefined)
-              updateRequest.description = updates.description;
-            if (updates.dueDate !== undefined) {
-              updateRequest.due_date = updates.dueDate || null;
-            }
-            if (updates.priority !== undefined)
-              updateRequest.priority = updates.priority;
-            if (updates.projectId !== undefined) {
-              updateRequest.project_id = updates.projectId || null;
-            }
-            if (updates.completed !== undefined)
-              updateRequest.completed = updates.completed;
-            if (updates.subtasks !== undefined) {
-              updateRequest.subtasks = Array.isArray(updates.subtasks)
-                ? updates.subtasks.map((st: any) =>
-                    typeof st === "string" ? st : st.text
-                  )
-                : [];
-            }
-            if (updates.tags !== undefined) {
-              updateRequest.tags = Array.isArray(updates.tags) ? updates.tags : [];
-            }
-
-            console.log("Attempting Tauri updateTask with request:", updateRequest);
-            await taskService.updateTask(updateRequest);
-            console.log("Tauri updateTask successful, reloading data...");
-            await loadAllData(); // Reload all data to get the updated task
-            return;
-          } catch (tauriError) {
-            console.error("Tauri updateTask failed, falling back to demo mode:", tauriError);
-            // Fall through to demo mode handling
-          }
+        // Use centralized Tauri context check
+        if (!isInTauriContext()) {
+          setError("Error accessing data - application must be run in desktop mode");
+          throw new Error("Database not available - not running in Tauri context");
         }
 
-        console.log("Using demo mode for updateTask");
-        // Handle demo data locally (fallback for both non-Tauri and failed Tauri)
-        setTasks((prevTasks) =>
-          prevTasks.map((task) => {
-            if (task.id === taskId) {
-              const updatedTask = { ...task };
-              
-              // Update fields that are provided
-              if (updates.title !== undefined) updatedTask.title = updates.title;
-              if (updates.description !== undefined) updatedTask.description = updates.description;
-              if (updates.dueDate !== undefined) updatedTask.dueDate = updates.dueDate;
-              if (updates.priority !== undefined) updatedTask.priority = updates.priority;
-              if (updates.projectId !== undefined) updatedTask.projectId = updates.projectId;
-              if (updates.completed !== undefined) updatedTask.completed = updates.completed;
-              if (updates.tags !== undefined) updatedTask.tags = updates.tags;
-              if (updates.subtasks !== undefined) {
-                // Convert subtask strings to subtask objects
-                updatedTask.subtasks = Array.isArray(updates.subtasks)
-                  ? updates.subtasks.map((st: any, index: number) => {
-                      if (typeof st === "string") {
-                        return {
-                          id: `${taskId}-${index + 1}`,
-                          text: st,
-                          completed: false,
-                        };
-                      } else {
-                        return st;
-                      }
-                    })
-                  : updatedTask.subtasks;
-              }
-              
-              return updatedTask;
-            }
-            return task;
-          })
-        );
+        // Prepare the request object with proper type handling
+        const updateRequest: any = {
+          id: taskId,
+        };
+
+        // Only include fields that are actually being updated
+        if (updates.title !== undefined) updateRequest.title = updates.title;
+        if (updates.description !== undefined)
+          updateRequest.description = updates.description;
+        if (updates.dueDate !== undefined) {
+          updateRequest.due_date = updates.dueDate || null;
+        }
+        if (updates.priority !== undefined)
+          updateRequest.priority = updates.priority;
+        if (updates.projectId !== undefined) {
+          updateRequest.project_id = updates.projectId || null;
+        }
+        if (updates.completed !== undefined)
+          updateRequest.completed = updates.completed;
+        if (updates.subtasks !== undefined) {
+          updateRequest.subtasks = Array.isArray(updates.subtasks)
+            ? updates.subtasks.map((st: any) =>
+                typeof st === "string" ? st : st.text
+              )
+            : [];
+        }
+        if (updates.tags !== undefined) {
+          updateRequest.tags = Array.isArray(updates.tags) ? updates.tags : [];
+        }
+
+        console.log("Attempting Tauri updateTask with request:", updateRequest);
+        await taskService.updateTask(updateRequest);
+        console.log("Tauri updateTask successful, reloading data...");
+        await loadAllData(); // Reload all data to get the updated task
       } catch (err) {
         console.error("Final updateTask error:", err);
-        setError(err instanceof Error ? err.message : "Failed to update task");
+        setError("Error accessing data - failed to update task");
         throw err;
       }
     },
@@ -419,22 +244,16 @@ export const useDatabase = () => {
       try {
         setError(null);
 
-        // Check if we're in Tauri context
-        const isInTauri =
-          typeof window !== "undefined" && "__TAURI__" in window;
-
-        if (!isInTauri) {
-          // Handle demo data locally
-          setTasks((prevTasks) =>
-            prevTasks.filter((task) => task.id !== taskId)
-          );
-          return;
+        // Use centralized Tauri context check
+        if (!isInTauriContext()) {
+          setError("Error accessing data - application must be run in desktop mode");
+          throw new Error("Database not available - not running in Tauri context");
         }
 
         await taskService.deleteTask(taskId);
         await loadAllData(); // Reload all data to remove the deleted task
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed to delete task");
+        setError("Error accessing data - failed to delete task");
         throw err;
       }
     },
@@ -446,28 +265,16 @@ export const useDatabase = () => {
       try {
         setError(null);
 
-        // Check if we're in Tauri context
-        const isInTauri =
-          typeof window !== "undefined" && "__TAURI__" in window;
-
-        if (!isInTauri) {
-          // Handle demo data locally
-          setTasks((prevTasks) =>
-            prevTasks.map((task) =>
-              task.id === taskId ? { ...task, completed } : task
-            )
-          );
-          return;
+        // Use centralized Tauri context check
+        if (!isInTauriContext()) {
+          setError("Error accessing data - application must be run in desktop mode");
+          throw new Error("Database not available - not running in Tauri context");
         }
 
         await taskService.toggleTaskCompletion(taskId, completed);
         await loadAllData(); // Reload all data to get the updated task
       } catch (err) {
-        setError(
-          err instanceof Error
-            ? err.message
-            : "Failed to toggle task completion"
-        );
+        setError("Error accessing data - failed to toggle task completion");
         throw err;
       }
     },
@@ -479,31 +286,16 @@ export const useDatabase = () => {
       try {
         setError(null);
 
-        // Check if we're in Tauri context
-        const isInTauri =
-          typeof window !== "undefined" && "__TAURI__" in window;
-
-        if (!isInTauri) {
-          // Handle demo data locally
-          setTasks((prevTasks) =>
-            prevTasks.map((task) => ({
-              ...task,
-              subtasks: task.subtasks.map((subtask) =>
-                subtask.id === subtaskId ? { ...subtask, completed } : subtask
-              ),
-            }))
-          );
-          return;
+        // Use centralized Tauri context check
+        if (!isInTauriContext()) {
+          setError("Error accessing data - application must be run in desktop mode");
+          throw new Error("Database not available - not running in Tauri context");
         }
 
         await taskService.toggleSubtaskCompletion(subtaskId, completed);
         await loadAllData(); // Reload all data to get the updated subtask
       } catch (err) {
-        setError(
-          err instanceof Error
-            ? err.message
-            : "Failed to toggle subtask completion"
-        );
+        setError("Error accessing data - failed to toggle subtask completion");
         throw err;
       }
     },
@@ -520,6 +312,16 @@ export const useDatabase = () => {
     ) => {
       try {
         setError(null);
+
+        // Check if we're in Tauri context
+        const isInTauri =
+          typeof window !== "undefined" && "__TAURI__" in window;
+
+        if (!isInTauri) {
+          setError("Error accessing data - application must be run in desktop mode");
+          throw new Error("Database not available - not running in Tauri context");
+        }
+
         await projectService.createProject(
           name,
           color,
@@ -528,9 +330,7 @@ export const useDatabase = () => {
         );
         await loadAllData();
       } catch (err) {
-        setError(
-          err instanceof Error ? err.message : "Failed to create project"
-        );
+        setError("Error accessing data - failed to create project");
         throw err;
       }
     },
@@ -541,12 +341,20 @@ export const useDatabase = () => {
     async (projectId: number) => {
       try {
         setError(null);
+
+        // Check if we're in Tauri context
+        const isInTauri =
+          typeof window !== "undefined" && "__TAURI__" in window;
+
+        if (!isInTauri) {
+          setError("Error accessing data - application must be run in desktop mode");
+          throw new Error("Database not available - not running in Tauri context");
+        }
+
         await projectService.deleteProject(projectId);
         await loadAllData();
       } catch (err) {
-        setError(
-          err instanceof Error ? err.message : "Failed to delete project"
-        );
+        setError("Error accessing data - failed to delete project");
         throw err;
       }
     },
@@ -558,12 +366,20 @@ export const useDatabase = () => {
     async (name: string, color: string, description?: string) => {
       try {
         setError(null);
+
+        // Check if we're in Tauri context
+        const isInTauri =
+          typeof window !== "undefined" && "__TAURI__" in window;
+
+        if (!isInTauri) {
+          setError("Error accessing data - application must be run in desktop mode");
+          throw new Error("Database not available - not running in Tauri context");
+        }
+
         await folderService.createFolder(name, color, description || null);
         await loadAllData();
       } catch (err) {
-        setError(
-          err instanceof Error ? err.message : "Failed to create folder"
-        );
+        setError("Error accessing data - failed to create folder");
         throw err;
       }
     },
@@ -574,12 +390,20 @@ export const useDatabase = () => {
     async (folderId: number) => {
       try {
         setError(null);
+
+        // Check if we're in Tauri context
+        const isInTauri =
+          typeof window !== "undefined" && "__TAURI__" in window;
+
+        if (!isInTauri) {
+          setError("Error accessing data - application must be run in desktop mode");
+          throw new Error("Database not available - not running in Tauri context");
+        }
+
         await folderService.deleteFolder(folderId);
         await loadAllData();
       } catch (err) {
-        setError(
-          err instanceof Error ? err.message : "Failed to delete folder"
-        );
+        setError("Error accessing data - failed to delete folder");
         throw err;
       }
     },
@@ -590,10 +414,20 @@ export const useDatabase = () => {
   const updateTheme = useCallback(async (newTheme: "light" | "dark") => {
     try {
       setError(null);
+
+      // Check if we're in Tauri context
+      const isInTauri =
+        typeof window !== "undefined" && "__TAURI__" in window;
+
+      if (!isInTauri) {
+        setError("Error accessing data - application must be run in desktop mode");
+        throw new Error("Database not available - not running in Tauri context");
+      }
+
       await settingsService.setTheme(newTheme);
       setTheme(newTheme);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to update theme");
+      setError("Error accessing data - failed to update theme");
       throw err;
     }
   }, []);

@@ -17,6 +17,8 @@ import {
   useDatabase,
 } from "./hooks";
 import { initialTemplates } from "./data/initialData";
+import { logsService } from "./services/logsService";
+import { logTauriDiagnostic, testTauriConnection } from "./utils/tauriDebug";
 import type { Task as TaskType, Subtask, ViewMode } from "./types";
 import "./App.css";
 
@@ -81,6 +83,7 @@ const App = (): JSX.Element => {
   const [viewMode, setViewMode] = useState<ViewMode>("list");
   const [showDeleteConfirmation, setShowDeleteConfirmation] =
     useState<boolean>(false);
+  const [devMode, setDevMode] = useState<boolean>(false);
   const [taskToDelete, setTaskToDelete] = useState<{
     id: string;
     title: string;
@@ -386,6 +389,48 @@ const App = (): JSX.Element => {
     }
   };
 
+  // Handle view logs
+  const handleViewLogs = async () => {
+    try {
+      await logsService.openLogsWindow();
+    } catch (error) {
+      console.error("Failed to open logs window:", error);
+    }
+  };
+
+  // Handle Tauri diagnostic
+  const handleTauriDiagnostic = async () => {
+    console.clear();
+    console.log("🔧 Running Enhanced Tauri Diagnostic v2...");
+    console.log("📝 Changes made to fix false 'web mode' detection:");
+    console.log("  • More lenient context detection (invoke function = Tauri likely available)");
+    console.log("  • Optimistic command execution before waiting");
+    console.log("  • Better error messages without assuming 'web mode'");
+    console.log("  • Aggressive retry logic");
+    console.log("");
+
+    // First attempt - immediate check
+    console.log("📊 Immediate diagnostic:");
+    logTauriDiagnostic();
+
+    // Second attempt - after waiting for initialization
+    console.log("⏳ Testing connection with new optimistic approach...");
+    const connectionResult = await testTauriConnection();
+
+    if (connectionResult) {
+      console.log("✅ All Tauri diagnostics passed!");
+      console.log("🎉 The false 'web mode' detection should now be fixed!");
+      console.log("💡 If you're still seeing database errors, try refreshing the page");
+    } else {
+      console.error("❌ Tauri diagnostic failed - this indicates a real issue");
+      console.log("🔧 Advanced troubleshooting:");
+      console.log("1. Check if Rust backend compiled without errors");
+      console.log("2. Verify all Tauri commands are registered in lib.rs");
+      console.log("3. Look for Rust compilation errors in the terminal");
+      console.log("4. Try completely restarting 'npm run tauri dev'");
+    }
+  };
+
   // Get filtered and sorted tasks
   const sortedTasks = getFilteredAndSortedTasks(tasks, getProjectById);
 
@@ -404,10 +449,111 @@ const App = (): JSX.Element => {
   // Show error state if database fails to initialize
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center relative">
         <div className="text-center text-red-500">
-          <p className="text-lg mb-2">Failed to load database</p>
+          <p className="text-lg mb-2">Unable to Access Data</p>
           <p className="text-sm">{error}</p>
+          <div
+            className={`mt-6 p-4 rounded-lg border shadow-sm ${
+              isDarkMode
+                ? "bg-gray-800 border-gray-700"
+                : "bg-gray-100 border-gray-200"
+            }`}
+          >
+            <p
+              className={`text-sm mb-2 ${
+                isDarkMode ? "text-gray-300" : "text-gray-700"
+              }`}
+            >
+              <span className="font-semibold">Troubleshooting Tips:</span>
+            </p>
+            <ul
+              className={`list-disc list-inside text-xs mb-2 space-y-1 ${
+                isDarkMode ? "text-gray-400" : "text-gray-600"
+              }`}
+            >
+              <li>
+                Make sure UltraList is running in{" "}
+                <span className="font-medium">desktop mode</span>.
+              </li>
+              <li>Try restarting the application if the problem persists.</li>
+              <li>Check your internet connection and system permissions.</li>
+            </ul>
+            <p
+              className={`text-xs ${
+                isDarkMode ? "text-gray-400" : "text-gray-500"
+              }`}
+            >
+              If you continue to see this error, please open an issue on our{" "}
+              <a
+                href="https://github.com/coolestcoder655/UltraList"
+                className={`underline hover:text-blue-700 dark:hover:text-blue-300 ${
+                  isDarkMode ? "text-blue-400" : "text-blue-500"
+                }`}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                GitHub repository
+              </a>
+              <span
+                className={`block mt-2 text-xs ${
+                  isDarkMode ? "text-gray-400" : "text-gray-500"
+                }`}
+              >
+                {isDarkMode
+                  ? "You are using UltraList in dark mode."
+                  : "You are using UltraList in light mode."}
+              </span>{" "}
+              with details about your environment and steps to reproduce the
+              issue.
+            </p>
+          </div>
+        </div>
+
+        {/* Developer Debug Logs Button for Error State */}
+        <div className="fixed bottom-4 right-4 flex gap-2">
+          <button
+            onClick={handleTauriDiagnostic}
+            className="px-4 py-2 rounded-lg shadow-lg transition-all duration-200 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 bg-red-600 hover:bg-red-500 text-white focus:ring-red-500"
+            title="Run Tauri context diagnostic (check console - F12)"
+          >
+            <svg
+              className="w-4 h-4 inline-block mr-2"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
+            Diagnose
+          </button>
+          <button
+            onClick={handleViewLogs}
+            className="px-4 py-2 rounded-lg shadow-lg transition-all duration-200 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 bg-gray-700 hover:bg-gray-600 text-gray-300 focus:ring-gray-500"
+            title="Open developer debug logs (for debugging and troubleshooting)"
+          >
+            <svg
+              className="w-4 h-4 inline-block mr-2"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"
+              />
+            </svg>
+            Debug Logs
+          </button>
         </div>
       </div>
     );
@@ -428,6 +574,8 @@ const App = (): JSX.Element => {
           <Header
             isDarkMode={isDarkMode}
             onToggleDarkMode={toggleDarkMode}
+            devMode={devMode}
+            onToggleDevMode={() => setDevMode(!devMode)}
             onShowAddForm={() => setShowAddForm(!showAddForm)}
             onShowProjectForm={() => setShowProjectForm(!showProjectForm)}
             viewMode={viewMode}
@@ -601,6 +749,62 @@ const App = (): JSX.Element => {
         isDarkMode={isDarkMode}
         isDestructive={true}
       />
+
+      {/* Developer Debug Buttons - Show when there's an error OR dev mode is enabled */}
+      {(error || devMode) && (
+        <div className="fixed bottom-4 right-4 flex gap-2">
+        <button
+          onClick={handleTauriDiagnostic}
+          className={`px-4 py-2 rounded-lg shadow-lg transition-all duration-200 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 ${
+            isDarkMode
+              ? "bg-red-600 hover:bg-red-500 text-white focus:ring-red-500"
+              : "bg-red-500 hover:bg-red-400 text-white focus:ring-red-300"
+          }`}
+          title="Run Tauri context diagnostic (check console - F12)"
+        >
+          <svg
+            className="w-4 h-4 inline-block mr-2"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
+          </svg>
+          Diagnose
+        </button>
+        <button
+          onClick={handleViewLogs}
+          className={`px-4 py-2 rounded-lg shadow-lg transition-all duration-200 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 ${
+            isDarkMode
+              ? "bg-gray-700 hover:bg-gray-600 text-gray-300 focus:ring-gray-500"
+              : "bg-white hover:bg-gray-50 text-gray-700 focus:ring-gray-300 border border-gray-200"
+          }`}
+          title="Open developer debug logs (for debugging and troubleshooting)"
+        >
+          <svg
+            className="w-4 h-4 inline-block mr-2"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"
+            />
+          </svg>
+          Debug Logs
+        </button>
+      </div>
+      )}
     </div>
   );
 };

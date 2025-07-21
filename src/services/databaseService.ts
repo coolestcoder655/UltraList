@@ -1,4 +1,59 @@
 import { invoke } from "@tauri-apps/api/core";
+import { debugTauriContext, logTauriDiagnostic, waitForTauriInitialization } from "../utils/tauriDebug";
+
+// Utility function to check if we're in Tauri context
+export const isInTauriContext = (): boolean => {
+  try {
+    // Primary check: if invoke function is available, we're likely in Tauri
+    if (typeof invoke === "function") {
+      return true;
+    }
+    
+    // Fallback check: traditional __TAURI__ global check
+    const diagnostic = debugTauriContext();
+    return diagnostic.isInTauriContext;
+  } catch (error) {
+    console.error("Error checking Tauri context:", error);
+    return false;
+  }
+};
+
+// Enhanced invoke wrapper with Tauri initialization waiting
+export const safeInvoke = async <T = any>(command: string, args?: Record<string, any>): Promise<T> => {
+  try {
+    // Optimistic approach: try the command first if invoke function is available
+    if (typeof invoke === "function") {
+      try {
+        console.log(`[DB] Attempting command: ${command}`, args);
+        const result = await invoke<T>(command, args);
+        console.log(`[DB] Command '${command}' completed successfully`);
+        return result;
+      } catch (invokeError) {
+        // If the command fails, it might be because Tauri isn't fully ready
+        console.log(`[DB] Direct invoke failed, checking Tauri initialization...`);
+      }
+    }
+    
+    // If direct invoke failed or isn't available, wait for full initialization
+    console.log(`[DB] Waiting for Tauri initialization before retrying ${command}...`);
+    const initialized = await waitForTauriInitialization(3000);
+    
+    if (!initialized && !isInTauriContext()) {
+      logTauriDiagnostic();
+      throw new Error(`NotInTauriContext: Cannot execute '${command}' - Tauri not available`);
+    }
+    
+    // Retry the command after waiting
+    console.log(`[DB] Retrying command after initialization: ${command}`, args);
+    const result = await invoke<T>(command, args);
+    console.log(`[DB] Command '${command}' completed successfully after retry`);
+    return result;
+    
+  } catch (error) {
+    console.error(`[DB] Command '${command}' failed:`, error);
+    throw error;
+  }
+};
 
 // Types matching the Rust backend
 export interface DatabaseTask {
@@ -66,20 +121,17 @@ export interface UpdateTaskRequest {
 // Task operations
 export const taskService = {
   async createTask(request: CreateTaskRequest): Promise<string> {
-    return await invoke("create_task", { request });
+    return await safeInvoke<string>("create_task", { request });
   },
 
   async getAllTasks(): Promise<TaskWithDetails[]> {
-    return await invoke("get_all_tasks");
+    return await safeInvoke<TaskWithDetails[]>("get_all_tasks");
   },
 
   async updateTask(request: UpdateTaskRequest): Promise<void> {
     try {
       console.log("taskService.updateTask called with:", request);
-      if (typeof invoke === 'undefined') {
-        throw new Error("Tauri invoke function not available");
-      }
-      await invoke("update_task", { request });
+      await safeInvoke<void>("update_task", { request });
       console.log("taskService.updateTask successful");
     } catch (error) {
       console.error("taskService.updateTask error:", error);
@@ -88,21 +140,21 @@ export const taskService = {
   },
 
   async deleteTask(taskId: string): Promise<void> {
-    return await invoke("delete_task", { taskId });
+    return await safeInvoke<void>("delete_task", { taskId });
   },
 
   async toggleTaskCompletion(
     taskId: string,
     completed: boolean
   ): Promise<void> {
-    return await invoke("toggle_task_completion", { taskId, completed });
+    return await safeInvoke<void>("toggle_task_completion", { taskId, completed });
   },
 
   async toggleSubtaskCompletion(
     subtaskId: string,
     completed: boolean
   ): Promise<void> {
-    return await invoke("toggle_subtask_completion", { subtaskId, completed });
+    return await safeInvoke<void>("toggle_subtask_completion", { subtaskId, completed });
   },
 };
 
@@ -114,7 +166,7 @@ export const projectService = {
     description: string | null,
     folderId: number | null
   ): Promise<void> {
-    return await invoke("create_project", {
+    return await safeInvoke<void>("create_project", {
       name,
       color,
       description,
@@ -123,11 +175,11 @@ export const projectService = {
   },
 
   async getAllProjects(): Promise<DatabaseProject[]> {
-    return await invoke("get_all_projects");
+    return await safeInvoke<DatabaseProject[]>("get_all_projects");
   },
 
   async deleteProject(projectId: number): Promise<void> {
-    return await invoke("delete_project", { projectId });
+    return await safeInvoke<void>("delete_project", { projectId });
   },
 };
 
@@ -138,41 +190,41 @@ export const folderService = {
     color: string,
     description: string | null
   ): Promise<void> {
-    return await invoke("create_folder", { name, color, description });
+    return await safeInvoke<void>("create_folder", { name, color, description });
   },
 
   async getAllFolders(): Promise<DatabaseFolder[]> {
-    return await invoke("get_all_folders");
+    return await safeInvoke<DatabaseFolder[]>("get_all_folders");
   },
 
   async deleteFolder(folderId: number): Promise<void> {
-    return await invoke("delete_folder", { folderId });
+    return await safeInvoke<void>("delete_folder", { folderId });
   },
 };
 
 // Tag operations
 export const tagService = {
   async getAllTags(): Promise<string[]> {
-    return await invoke("get_all_tags");
+    return await safeInvoke<string[]>("get_all_tags");
   },
 };
 
 // Settings operations
 export const settingsService = {
   async setTheme(theme: string): Promise<void> {
-    return await invoke("set_theme", { theme });
+    return await safeInvoke<void>("set_theme", { theme });
   },
 
   async getTheme(): Promise<string> {
-    return await invoke("get_theme");
+    return await safeInvoke<string>("get_theme");
   },
 
   async saveSetting(key: string, value: string): Promise<void> {
-    return await invoke("save_setting", { key, value });
+    return await safeInvoke<void>("save_setting", { key, value });
   },
 
   async getSetting(key: string): Promise<string | null> {
-    return await invoke("get_setting", { key });
+    return await safeInvoke<string | null>("get_setting", { key });
   },
 };
 

@@ -49,7 +49,9 @@ pub fn run() {
             // SearchBar Mode commands
             set_searchbar_mode,
             get_searchbar_mode,
-            parse_natural_language_task
+            parse_natural_language_task,
+            // Logging commands
+            get_application_logs
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
