@@ -10,6 +10,7 @@ import AutocompleteSuggestions from "./SearchBar/AutocompleteSuggestions";
 import TaskPreview from "./SearchBar/TaskPreview";
 import SearchHelpModal from "./SearchBar/SearchHelpModal";
 import NlpHelpModal from "./SearchBar/NlpHelpModal";
+import ModeSelector from "./SearchBar/ModeSelector";
 
 // Import utilities
 import {
@@ -38,8 +39,14 @@ const SearchBar: React.FC<SearchBarProps> = ({
   projects,
   onTaskCreated,
 }) => {
-  const { toggleMode, parseInput, isSearchMode, isCreateMode } =
-    useSearchBarMode();
+  const {
+    toggleMode,
+    parseInput,
+    isSearchMode,
+    isCreateMode,
+    switchToMode,
+    loading,
+  } = useSearchBarMode();
 
   // Search mode states
   const [showSuggestions, setShowSuggestions] = useState(false);
@@ -323,6 +330,17 @@ const SearchBar: React.FC<SearchBarProps> = ({
 
   return (
     <div className="relative w-full">
+      {/* Mode Selector */}
+      <div className="mb-4 flex justify-center animate-fadeIn">
+        <ModeSelector
+          isSearchMode={isSearchMode}
+          isCreateMode={isCreateMode}
+          onModeSwitch={switchToMode}
+          isDarkMode={isDarkMode}
+          disabled={loading}
+        />
+      </div>
+
       {/* Search Bar */}
       <div className="relative">
         <SearchInput

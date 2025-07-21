@@ -88,8 +88,8 @@ const SearchInput: React.FC<SearchInputProps> = ({
         onKeyDown={onKeyDown}
         placeholder={
           isSearchMode
-            ? "Search tasks or use filters (priority:high, #tag, project:work...)"
-            : "Describe your task in plain English... (e.g., 'Buy eggs tomorrow at 5pm #grocery')"
+            ? "Search tasks or use filters..."
+            : "Describe your task in plain English..."
         }
         className="flex-1 bg-transparent outline-none placeholder-gray-500 transition-all duration-200"
       />
