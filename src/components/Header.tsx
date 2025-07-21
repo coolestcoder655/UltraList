@@ -11,6 +11,7 @@ import {
   Timer,
   Code,
   Info,
+  Archive,
 } from "lucide-react";
 import { ViewMode } from "../types";
 
@@ -43,6 +44,7 @@ const Header: React.FC<HeaderProps> = ({
     { mode: "gantt" as ViewMode, icon: BarChart3, label: "Gantt" },
     { mode: "eisenhower" as ViewMode, icon: Grid3X3, label: "Matrix" },
     { mode: "pomodoro" as ViewMode, icon: Timer, label: "Pomodoro" },
+    { mode: "backlog" as ViewMode, icon: Archive, label: "Backlog" },
   ];
 
   return (

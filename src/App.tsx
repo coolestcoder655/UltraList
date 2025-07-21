@@ -8,6 +8,7 @@ import KanbanView from "./components/KanbanView";
 import GanttView from "./components/GanttView";
 import EisenhowerView from "./components/EisenhowerView";
 import PomodoroView from "./components/PomodoroView";
+import BacklogView from "./components/BacklogView";
 import ConfirmationModal from "./components/ConfirmationModal";
 import KeyboardShortcutsModal from "./components/KeyboardShortcutsModal";
 import {
@@ -795,6 +796,19 @@ const App = (): JSX.Element => {
                 isDarkMode={isDarkMode}
                 onStartEdit={startEdit}
                 onToggleSubtask={handleToggleSubtask}
+                getTagColor={getTagColor}
+                priorityColors={priorityColors}
+              />
+            )}
+
+            {viewMode === "backlog" && (
+              <BacklogView
+                tasks={sortedTasks}
+                projects={projects}
+                isDarkMode={isDarkMode}
+                onStartEdit={startEdit}
+                onToggleTask={handleToggleTask}
+                formatDate={formatDate}
                 getTagColor={getTagColor}
                 priorityColors={priorityColors}
               />

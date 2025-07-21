@@ -103,7 +103,7 @@ export interface PriorityOrder {
 }
 
 // View modes for different productivity views
-export type ViewMode = "list" | "kanban" | "gantt" | "eisenhower" | "pomodoro";
+export type ViewMode = "list" | "kanban" | "gantt" | "eisenhower" | "pomodoro" | "backlog";
 
 // Kanban board status
 export type TaskStatus = "todo" | "in-progress" | "done";
