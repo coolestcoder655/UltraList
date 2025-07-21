@@ -467,15 +467,6 @@ const App = (): JSX.Element => {
       // Switch to pomodoro and start session - could be enhanced
       setViewMode("pomodoro");
     },
-    onOpenAdvancedSearch: () => {
-      // Focus search bar or show advanced search options
-      const searchInput = document.querySelector(
-        'input[type="search"]'
-      ) as HTMLInputElement;
-      if (searchInput) {
-        searchInput.focus();
-      }
-    },
     onSwitchToNLPMode: async () => {
       // Switch search bar to NLP (create) mode
       try {

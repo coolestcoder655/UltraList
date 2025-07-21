@@ -55,7 +55,6 @@ const KeyboardShortcutsModal: React.FC<KeyboardShortcutsModalProps> = ({
       category: "Productivity",
       items: [
         { key: "Alt + S", action: "Start selected Pomodoro session" },
-        { key: "Alt + F", action: "Open Advanced Search" },
         { key: "Alt + R", action: "Refresh current view" },
         { key: "Alt + H", action: "Show/hide completed tasks" },
         { key: "Alt + U", action: "Toggle theme (Dark/Light)" },

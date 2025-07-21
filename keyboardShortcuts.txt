@@ -25,9 +25,6 @@
 <Shortcut>: Alt + S  
 <Action>: Start selected Pomodoro session
 
-<Shortcut>: Alt + F  
-<Action>: Open Advanced Search
-
 <Shortcut>: Alt + C  
 <Action>: Create task from natural language
 

@@ -10,7 +10,6 @@ interface KeyboardShortcutsConfig {
   onSwitchToEisenhowerView: () => void;
   onSwitchToPomodoroView: () => void;
   onStartPomodoroSession: () => void;
-  onOpenAdvancedSearch: () => void;
   onSwitchToNLPMode: () => void;
   onRefreshView: () => void;
   onOpenTaskSidebar: () => void;
@@ -73,10 +72,6 @@ export const useKeyboardShortcuts = (config: KeyboardShortcutsConfig) => {
         case "s":
           event.preventDefault();
           config.onStartPomodoroSession();
-          break;
-        case "f":
-          event.preventDefault();
-          config.onOpenAdvancedSearch();
           break;
         case "c":
           event.preventDefault();

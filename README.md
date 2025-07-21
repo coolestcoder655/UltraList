@@ -136,7 +136,6 @@ UltraList includes comprehensive keyboard shortcuts for power users:
 - **Alt + M**: Switch to Eisenhower Matrix
 - **Alt + P**: Open Pomodoro Timer
 - **Alt + S**: Start Pomodoro session
-- **Alt + F**: Open Advanced Search
 - **Alt + C**: Create task from natural language
 - **Alt + R**: Refresh current view
 - **Alt + H**: Show/hide completed tasks
