@@ -17,6 +17,9 @@ export const getNlpCategories = (): NlpSuggestionCategories => ({
     "high priority",
     "medium priority",
     "low priority",
+    "high",
+    "medium",
+    "low",
     "normal",
     "moderate",
     "minor",
@@ -143,6 +146,38 @@ export const generateSearchSuggestions = (
     });
   }
 
+  // Add task text search as suggestions (search in existing task titles/descriptions)
+  const searchTerm = lastWord.toLowerCase();
+  if (searchTerm.length >= 2 && !lastWord.startsWith("#")) {
+    const taskMatches = new Set<string>();
+    tasks.forEach((task) => {
+      // Search in title
+      const titleWords = task.title.toLowerCase().split(/\s+/);
+      titleWords.forEach((word) => {
+        if (word.startsWith(searchTerm) && word.length > searchTerm.length) {
+          taskMatches.add(word);
+        }
+      });
+
+      // Search in description
+      if (task.description) {
+        const descWords = task.description.toLowerCase().split(/\s+/);
+        descWords.forEach((word) => {
+          if (word.startsWith(searchTerm) && word.length > searchTerm.length) {
+            taskMatches.add(word);
+          }
+        });
+      }
+    });
+
+    // Add the most relevant task-based suggestions
+    Array.from(taskMatches)
+      .slice(0, 3)
+      .forEach((match) => {
+        suggestions.push(match);
+      });
+  }
+
   return suggestions.slice(0, 5);
 };
 
@@ -202,13 +237,29 @@ export const generateNlpSuggestions = (query: string): string[] => {
     }
   });
 
-  // Match priority keywords
+  // Match priority keywords - prefer compound forms and avoid duplicates
+  const priorityMatches: string[] = [];
   categories.priorityKeywords.forEach((keyword) => {
     if (
-      keyword.toLowerCase().includes(lowerLastWord) &&
-      lowerLastWord.length >= 2
+      keyword.toLowerCase().startsWith(lowerLastWord) &&
+      lowerLastWord.length >= 1
     ) {
-      suggestions.push(keyword);
+      priorityMatches.push(keyword);
+    }
+  });
+
+  // Sort priority matches to prefer compound forms ("high priority" over "high")
+  priorityMatches.sort((a, b) => {
+    // Prefer longer, more specific matches
+    if (a.includes(" ") && !b.includes(" ")) return -1;
+    if (!a.includes(" ") && b.includes(" ")) return 1;
+    return b.length - a.length;
+  });
+
+  // Add only the best priority matches to avoid duplicates
+  priorityMatches.slice(0, 2).forEach((match) => {
+    if (!suggestions.includes(match)) {
+      suggestions.push(match);
     }
   });
 
@@ -285,9 +336,47 @@ export const applyNlpSuggestionLogic = (
   suggestion: string
 ): string => {
   const categories = getNlpCategories();
-  let currentText = searchQuery.trim();
+  const trimmedQuery = searchQuery.trim();
+  const words = trimmedQuery.split(/\s+/).filter((word) => word.length > 0);
+  const lastWord = words.length > 0 ? words[words.length - 1] : "";
 
-  // Determine what category the new suggestion belongs to
+  // Debug logging - remove this later
+  console.log("applyNlpSuggestionLogic called:", {
+    searchQuery,
+    suggestion,
+    lastWord,
+  });
+
+  // Handle compound priority suggestions specially
+  if (
+    suggestion === "high priority" ||
+    suggestion === "medium priority" ||
+    suggestion === "low priority"
+  ) {
+    const priorityWord = suggestion.split(" ")[0]; // "high", "medium", or "low"
+    let currentWords = [...words];
+
+    // Remove the standalone priority word if it exists at the end
+    if (
+      currentWords.length > 0 &&
+      currentWords[currentWords.length - 1].toLowerCase() ===
+        priorityWord.toLowerCase()
+    ) {
+      currentWords.pop(); // Remove the last word
+    }
+
+    // Add the compound suggestion
+    currentWords.push(suggestion);
+    return currentWords.join(" ") + " ";
+  }
+
+  // Check if this suggestion is a completion of the last word
+  const isCompletion =
+    lastWord &&
+    suggestion.toLowerCase().startsWith(lastWord.toLowerCase()) &&
+    suggestion.toLowerCase() !== lastWord.toLowerCase();
+
+  // Determine what category the suggestion belongs to
   let suggestionCategory: string[] = [];
   if (
     categories.priorityKeywords.some(
@@ -309,9 +398,18 @@ export const applyNlpSuggestionLogic = (
     suggestionCategory = categories.dateKeywords;
   }
 
-  // If this is a categorized suggestion, remove any existing keywords from that category
+  // If this is a categorized suggestion
   if (suggestionCategory.length > 0) {
-    // Remove any existing keywords from the same category
+    let currentWords = [...words];
+
+    // If it's a completion of the last word, replace the last word
+    if (isCompletion) {
+      currentWords[currentWords.length - 1] = suggestion;
+      return currentWords.join(" ") + " ";
+    }
+
+    // Otherwise, remove any existing keywords from the same category and add new one
+    let currentText = trimmedQuery;
     suggestionCategory.forEach((keyword) => {
       const regex = new RegExp(
         `\\b${keyword.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`,
@@ -320,25 +418,40 @@ export const applyNlpSuggestionLogic = (
       currentText = currentText.replace(regex, "");
     });
 
-    // Clean up multiple spaces
+    // Clean up multiple spaces and trim
     currentText = currentText.replace(/\s+/g, " ").trim();
-
-    // Add the new suggestion
     return currentText + (currentText ? " " : "") + suggestion + " ";
   } else {
-    // Handle non-categorized suggestions (tags, etc.) - replace last word
-    const words = searchQuery.split(" ");
-    const lastWord = words[words.length - 1];
+    // Handle non-categorized suggestions
+    let currentWords = [...words];
 
-    if (suggestion.startsWith("#") && lastWord.startsWith("#")) {
-      words[words.length - 1] = suggestion;
-    } else if (suggestion.startsWith("#") && !lastWord.startsWith("#")) {
-      words[words.length - 1] = suggestion;
-    } else if (suggestion.includes(" ")) {
-      words[words.length - 1] = suggestion;
-    } else {
-      words[words.length - 1] = suggestion;
+    // For tags, replace if last word is also a tag, otherwise add as new word
+    if (suggestion.startsWith("#")) {
+      if (lastWord.startsWith("#")) {
+        currentWords[currentWords.length - 1] = suggestion;
+      } else {
+        currentWords.push(suggestion);
+      }
     }
-    return words.join(" ") + " ";
+    // For single-word suggestions, check if it's a completion of the last word
+    else if (!suggestion.includes(" ")) {
+      if (isCompletion) {
+        // It's a completion, replace the last word
+        currentWords[currentWords.length - 1] = suggestion;
+      } else {
+        // It's a new word, add it
+        currentWords.push(suggestion);
+      }
+    }
+    // For multi-word suggestions, replace the last word
+    else {
+      if (currentWords.length > 0) {
+        currentWords[currentWords.length - 1] = suggestion;
+      } else {
+        currentWords.push(suggestion);
+      }
+    }
+
+    return currentWords.join(" ") + " ";
   }
 };

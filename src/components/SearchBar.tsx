@@ -132,8 +132,16 @@ const SearchBar: React.FC<SearchBarProps> = ({
       setActiveSecondaryIndex(0);
       inputRef.current?.focus();
     } else {
-      const words = searchQuery.split(" ");
-      words[words.length - 1] = suggestion;
+      // For all other suggestions, replace the last word completely
+      const trimmedQuery = searchQuery.trim();
+      const words = trimmedQuery.split(/\s+/).filter(word => word.length > 0);
+
+      if (words.length > 0) {
+        words[words.length - 1] = suggestion;
+      } else {
+        words.push(suggestion);
+      }
+
       setSearchQuery(words.join(" ") + " ");
       setShowSuggestions(false);
       inputRef.current?.focus();
@@ -363,9 +371,8 @@ const SearchBar: React.FC<SearchBarProps> = ({
         {/* Help Info Description */}
         <div className="text-center mt-3 animate-fadeIn">
           <p
-            className={`text-xs mt-1 transition-all duration-300 ${
-              isDarkMode ? "text-gray-500" : "text-gray-400"
-            }`}
+            className={`text-xs mt-1 transition-all duration-300 ${isDarkMode ? "text-gray-500" : "text-gray-400"
+              }`}
           >
             View info on {isSearchMode ? "Search" : "Create"} using the{" "}
             <svg
@@ -392,11 +399,10 @@ const SearchBar: React.FC<SearchBarProps> = ({
               {Object.entries(activeFilters).map(([key, value], index) => (
                 <span
                   key={key}
-                  className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium transition-all duration-300 transform hover:scale-105 ${
-                    isDarkMode
+                  className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium transition-all duration-300 transform hover:scale-105 ${isDarkMode
                       ? "bg-blue-900 text-blue-200 border border-blue-700"
                       : "bg-blue-100 text-blue-800 border border-blue-200"
-                  }`}
+                    }`}
                   style={{
                     animationDelay: `${index * 100}ms`,
                     animation: "slideInUp 0.4s ease-out forwards",
@@ -436,37 +442,33 @@ const SearchBar: React.FC<SearchBarProps> = ({
           secondaryOptions.length > 0 && (
             <div
               ref={secondaryRef}
-              className={`absolute z-[100] w-full mb-2 bottom-full border rounded-lg shadow-lg max-h-60 overflow-y-auto transform transition-all duration-300 ease-out animate-slideInUp ${
-                isDarkMode
+              className={`absolute z-[100] w-full mb-2 bottom-full border rounded-lg shadow-lg max-h-60 overflow-y-auto transform transition-all duration-300 ease-out animate-slideInUp ${isDarkMode
                   ? "bg-gray-800 border-gray-600 shadow-xl"
                   : "bg-white border-gray-300 shadow-xl"
-              }`}
+                }`}
             >
               {secondaryOptions.map((option, index) => (
                 <button
                   key={option}
                   onClick={() => applySecondaryOption(option)}
-                  className={`w-full px-4 py-3 text-left transition-all duration-200 transform hover:scale-[1.02] ${
-                    index === activeSecondaryIndex
+                  className={`w-full px-4 py-3 text-left transition-all duration-200 transform hover:scale-[1.02] ${index === activeSecondaryIndex
                       ? isDarkMode
                         ? "bg-blue-600 text-white shadow-md"
                         : "bg-blue-500 text-white shadow-md"
                       : "hover:bg-gray-100 dark:hover:bg-gray-700"
-                  } ${index === 0 ? "rounded-t-lg" : ""} ${
-                    index === secondaryOptions.length - 1 ? "rounded-b-lg" : ""
-                  }`}
+                    } ${index === 0 ? "rounded-t-lg" : ""} ${index === secondaryOptions.length - 1 ? "rounded-b-lg" : ""
+                    }`}
                   style={{
                     animationDelay: `${index * 50}ms`,
                   }}
                 >
                   <span
-                    className={`${
-                      index === activeSecondaryIndex
+                    className={`${index === activeSecondaryIndex
                         ? "text-white"
                         : isDarkMode
-                        ? "text-white"
-                        : "text-gray-900"
-                    }`}
+                          ? "text-white"
+                          : "text-gray-900"
+                      }`}
                   >
                     {option}
                   </span>

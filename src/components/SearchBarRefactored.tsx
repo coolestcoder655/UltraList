@@ -125,8 +125,16 @@ const SearchBar: React.FC<SearchBarProps> = ({
       setActiveSecondaryIndex(0);
       inputRef.current?.focus();
     } else {
-      const words = searchQuery.split(" ");
-      words[words.length - 1] = suggestion;
+      // For all other suggestions, replace the last word completely
+      const trimmedQuery = searchQuery.trim();
+      const words = trimmedQuery.split(/\s+/).filter(word => word.length > 0);
+
+      if (words.length > 0) {
+        words[words.length - 1] = suggestion;
+      } else {
+        words.push(suggestion);
+      }
+
       setSearchQuery(words.join(" ") + " ");
       setShowSuggestions(false);
       inputRef.current?.focus();
@@ -348,11 +356,10 @@ const SearchBar: React.FC<SearchBarProps> = ({
             {Object.entries(activeFilters).map(([key, value]) => (
               <span
                 key={key}
-                className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                  isDarkMode
+                className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${isDarkMode
                     ? "bg-blue-900 text-blue-200"
                     : "bg-blue-100 text-blue-800"
-                }`}
+                  }`}
               >
                 {key}: {Array.isArray(value) ? value.join(", ") : String(value)}
               </span>
@@ -384,23 +391,20 @@ const SearchBar: React.FC<SearchBarProps> = ({
           secondaryOptions.length > 0 && (
             <div
               ref={secondaryRef}
-              className={`absolute z-[100] w-full mb-2 bottom-full border rounded-lg shadow-lg max-h-60 overflow-y-auto ${
-                isDarkMode
+              className={`absolute z-[100] w-full mb-2 bottom-full border rounded-lg shadow-lg max-h-60 overflow-y-auto ${isDarkMode
                   ? "bg-gray-800 border-gray-600"
                   : "bg-white border-gray-300"
-              }`}
+                }`}
             >
               {secondaryOptions.map((option, index) => (
                 <button
                   key={option}
                   onClick={() => applySecondaryOption(option)}
-                  className={`w-full px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-700 ${
-                    index === activeSecondaryIndex
+                  className={`w-full px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-700 ${index === activeSecondaryIndex
                       ? "bg-gray-100 dark:bg-gray-700"
                       : ""
-                  } ${index === 0 ? "rounded-t-lg" : ""} ${
-                    index === secondaryOptions.length - 1 ? "rounded-b-lg" : ""
-                  }`}
+                    } ${index === 0 ? "rounded-t-lg" : ""} ${index === secondaryOptions.length - 1 ? "rounded-b-lg" : ""
+                    }`}
                 >
                   <span
                     className={`${isDarkMode ? "text-white" : "text-gray-900"}`}
