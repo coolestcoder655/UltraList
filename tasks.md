@@ -6,6 +6,7 @@
 - [x] Eisenhower matrix / priority quadrant
 - [x] Pomodoro timer
 - [x] **FIX UPDATING TASKS**
+- [ ] **FIX THE THEME**
 - [ ] Keyboard shortcuts
 - [ ] Progress tracking (% complete)
 - [ ] Focus mode (hide everything except 1 task)
