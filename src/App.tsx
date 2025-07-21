@@ -4,23 +4,18 @@ import SearchBar from "./components/SearchBar";
 import AddTaskForm from "./components/AddTaskForm";
 import ProjectManagement from "./components/ProjectManagement";
 import TaskList from "./components/TaskList";
-import KanbanView from "./components/KanbanView";
-import GanttView from "./components/GanttView";
-import EisenhowerView from "./components/EisenhowerView";
-import PomodoroView from "./components/PomodoroView";
 import FocusView from "./components/FocusView";
 import BacklogView from "./components/BacklogView";
 import ConfirmationModal from "./components/ConfirmationModal";
 import KeyboardShortcutsModal from "./components/KeyboardShortcutsModal";
 import {
   useTheme,
-  useTemplates,
   useTaskForm,
   useTaskFiltering,
   useDatabase,
   useKeyboardShortcuts,
+  useMobileMode,
 } from "./hooks";
-import { initialTemplates } from "./data/initialData";
 import { logsService } from "./services/logsService";
 import { logTauriDiagnostic, testTauriConnection } from "./utils/tauriDebug";
 import { setSearchBarMode } from "./services/databaseService";
@@ -50,8 +45,6 @@ const App = (): JSX.Element => {
 
   // Custom hooks (keeping existing ones that don't conflict)
   const { getTagColor, priorityColors } = useTheme();
-  const { templates, addTemplate, deleteTemplate } =
-    useTemplates(initialTemplates);
   const {
     newTask,
     setNewTask,
@@ -81,6 +74,9 @@ const App = (): JSX.Element => {
     parseSearchQuery,
     getFilteredAndSortedTasks,
   } = useTaskFiltering();
+
+  // Mobile mode hook
+  const { isMobileMode, toggleMobileMode } = useMobileMode();
 
   // UI state
   const [showAddForm, setShowAddForm] = useState<boolean>(false);
@@ -178,27 +174,6 @@ const App = (): JSX.Element => {
       // Reset editing task on failure to prevent further issues
       setEditingTask(null);
     }
-  };
-
-  // Template functions
-  const applyTemplate = (templateId: number): void => {
-    const template = templates.find((t) => t.id === templateId);
-    if (!template) return;
-    applyTemplateToForm(template);
-  };
-
-  const saveAsTemplate = (): void => {
-    if (!newTask.title.trim()) return;
-    addTemplate({
-      name: `Template: ${newTask.title}`,
-      description: `Auto-generated from task`,
-      defaultTitle: newTask.title,
-      defaultDescription: newTask.description,
-      defaultPriority: newTask.priority,
-      defaultSubtasks: [...newTask.subtasks],
-      defaultProjectId: newTask.projectId,
-      defaultTags: [...newTask.tags],
-    });
   };
 
   // Project and Folder management functions
@@ -460,15 +435,8 @@ const App = (): JSX.Element => {
       }
     },
     onSwitchToListView: () => setViewMode("list"),
-    onSwitchToKanbanView: () => setViewMode("kanban"),
-    onSwitchToGanttView: () => setViewMode("gantt"),
-    onSwitchToEisenhowerView: () => setViewMode("eisenhower"),
-    onSwitchToPomodoroView: () => setViewMode("pomodoro"),
+    onSwitchToEisenhowerView: () => setViewMode("backlog"),
     onSwitchToFocusView: () => setViewMode("focus"),
-    onStartPomodoroSession: () => {
-      // Switch to pomodoro and start session - could be enhanced
-      setViewMode("pomodoro");
-    },
     onSwitchToNLPMode: async () => {
       // Switch search bar to NLP (create) mode
       try {
@@ -526,8 +494,8 @@ const App = (): JSX.Element => {
           <p className="text-sm">{error}</p>
           <div
             className={`mt-6 p-4 rounded-lg border shadow-sm ${isDarkMode
-                ? "bg-gray-800 border-gray-700"
-                : "bg-gray-100 border-gray-200"
+              ? "bg-gray-800 border-gray-700"
+              : "bg-gray-100 border-gray-200"
               }`}
           >
             <p
@@ -622,7 +590,7 @@ const App = (): JSX.Element => {
 
   return (
     <div
-      className={`min-h-screen transition-all duration-500 ease-in-out ${isDarkMode ? "bg-gray-900" : "bg-gray-50"
+      className={`min-h-screen transition-all duration-500 ease-in-out ${isMobileMode ? 'mobile-friendly' : ''} ${isDarkMode ? "bg-gray-900" : "bg-gray-50"
         }`}
     >
       <div className="h-full">
@@ -640,6 +608,8 @@ const App = (): JSX.Element => {
             viewMode={viewMode}
             onViewModeChange={setViewMode}
             onShowKeyboardShortcuts={() => setShowKeyboardShortcuts(true)}
+            isMobileMode={isMobileMode}
+            onToggleMobileMode={toggleMobileMode}
           />
 
           <div
@@ -673,19 +643,15 @@ const App = (): JSX.Element => {
               setNewSubtask={setNewSubtask}
               newTag={newTag}
               setNewTag={setNewTag}
-              templates={templates}
               projects={projects}
               folders={folders}
               parseResult={parseResult}
               showParseSuggestions={showParseSuggestions}
-              onApplyTemplate={applyTemplate}
               onAddTask={handleAddTask}
-              onSaveAsTemplate={saveAsTemplate}
               onAddSubtaskToNewTask={addSubtaskToNewTask}
               onRemoveSubtaskFromNewTask={removeSubtaskFromNewTask}
               onAddTagToNewTask={addTagToNewTask}
               onRemoveTagFromNewTask={removeTagFromNewTask}
-              onDeleteTemplate={deleteTemplate}
               onParseNaturalLanguage={parseNaturalLanguage}
               onApplyParsedData={applyParsedData}
               onDismissParseSuggestions={dismissParseSuggestions}
@@ -725,6 +691,7 @@ const App = (): JSX.Element => {
                 expandedTasks={expandedTasks}
                 priorityColors={priorityColors}
                 isDarkMode={isDarkMode}
+                isMobileMode={isMobileMode}
                 projects={projects}
                 onToggleTask={handleToggleTask}
                 onToggleSubtask={handleToggleSubtask}
@@ -737,60 +704,6 @@ const App = (): JSX.Element => {
                 formatDate={formatDate}
                 isOverdue={isOverdue}
                 getTagColor={getTagColor}
-              />
-            )}
-
-            {viewMode === "kanban" && (
-              <KanbanView
-                tasks={sortedTasks}
-                projects={projects}
-                isDarkMode={isDarkMode}
-                onToggleTask={handleToggleTask}
-                onStartEdit={startEdit}
-                onDeleteTask={handleDeleteTask}
-                formatDate={formatDate}
-                isOverdue={isOverdue}
-                getTagColor={getTagColor}
-                priorityColors={priorityColors}
-              />
-            )}
-
-            {viewMode === "gantt" && (
-              <GanttView
-                tasks={sortedTasks}
-                projects={projects}
-                isDarkMode={isDarkMode}
-                onStartEdit={startEdit}
-                formatDate={formatDate}
-                isOverdue={isOverdue}
-                getTagColor={getTagColor}
-                priorityColors={priorityColors}
-              />
-            )}
-
-            {viewMode === "eisenhower" && (
-              <EisenhowerView
-                tasks={sortedTasks}
-                projects={projects}
-                isDarkMode={isDarkMode}
-                onStartEdit={startEdit}
-                onToggleTask={handleToggleTask}
-                formatDate={formatDate}
-                isOverdue={isOverdue}
-                getTagColor={getTagColor}
-                priorityColors={priorityColors}
-              />
-            )}
-
-            {viewMode === "pomodoro" && (
-              <PomodoroView
-                tasks={sortedTasks}
-                projects={projects}
-                isDarkMode={isDarkMode}
-                onStartEdit={startEdit}
-                onToggleSubtask={handleToggleSubtask}
-                getTagColor={getTagColor}
-                priorityColors={priorityColors}
               />
             )}
 
@@ -844,8 +757,8 @@ const App = (): JSX.Element => {
           <button
             onClick={handleTauriDiagnostic}
             className={`px-4 py-2 rounded-lg shadow-lg transition-all duration-200 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 ${isDarkMode
-                ? "bg-red-600 hover:bg-red-500 text-white focus:ring-red-500"
-                : "bg-red-500 hover:bg-red-400 text-white focus:ring-red-300"
+              ? "bg-red-600 hover:bg-red-500 text-white focus:ring-red-500"
+              : "bg-red-500 hover:bg-red-400 text-white focus:ring-red-300"
               }`}
             title="Run Tauri context diagnostic (check console - F12)"
           >
@@ -868,8 +781,8 @@ const App = (): JSX.Element => {
           <button
             onClick={handleViewLogs}
             className={`px-4 py-2 rounded-lg shadow-lg transition-all duration-200 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 ${isDarkMode
-                ? "bg-gray-700 hover:bg-gray-600 text-gray-300 focus:ring-gray-500"
-                : "bg-white hover:bg-gray-50 text-gray-700 focus:ring-gray-300 border border-gray-200"
+              ? "bg-gray-700 hover:bg-gray-600 text-gray-300 focus:ring-gray-500"
+              : "bg-white hover:bg-gray-50 text-gray-700 focus:ring-gray-300 border border-gray-200"
               }`}
             title="Open developer debug logs (for debugging and troubleshooting)"
           >

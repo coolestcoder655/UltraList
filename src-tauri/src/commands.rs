@@ -291,6 +291,18 @@ pub async fn get_theme(db: State<'_, DatabaseState>) -> Result<String, String> {
 }
 
 #[tauri::command]
+pub async fn set_mobile_mode(enabled: bool, db: State<'_, DatabaseState>) -> Result<(), String> {
+    let db = db.lock().map_err(|e| format!("Database lock error: {}", e))?;
+    db.set_mobile_mode(enabled).map_err(|e| format!("Failed to set mobile mode: {}", e))
+}
+
+#[tauri::command]
+pub async fn get_mobile_mode(db: State<'_, DatabaseState>) -> Result<bool, String> {
+    let db = db.lock().map_err(|e| format!("Database lock error: {}", e))?;
+    db.get_mobile_mode().map_err(|e| format!("Failed to get mobile mode: {}", e))
+}
+
+#[tauri::command]
 pub async fn save_setting(
     key: String,
     value: String,

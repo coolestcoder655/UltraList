@@ -1,13 +1,5 @@
-- [x] Integrate SQLite Across My Application. I want all data that can be saved into my database to be saved, ex: task data, dark mode/lightmode, etc...
-- [x] **FIX DELETING TASKS**
-- [x] Natural language input (e.g., "Buy eggs tomorrow at 5pm")
-- [x] Kanban view (Trello-style boards)
-- [x] Gantt chart (for project planning)
-- [x] Eisenhower matrix / priority quadrant
-- [x] Pomodoro timer
-- [x] **FIX UPDATING TASKS**
-- [x] **FIX THE THEME**
-- [x] Keyboard shortcuts
-- [x] Backlog / someday list
-- [x] **FIX THE AUTO COMPLETE**
-- [x] Focus mode (hide everything except 1 task)
+- [ ] Remove Kanban, Gantt, Matrix, Pomodoro, Templates
+- [ ] Add Tags when Editing Tasks
+- [ ] Don’t display tag if no filter
+- [ ] Fix NLP; Make it actually create the task with Enter + Create Button
+- [ ] The “Next (Monday, Tuesday, Wendsday, etc…)” does not work
