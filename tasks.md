@@ -8,6 +8,7 @@
 - [x] **FIX UPDATING TASKS**
 - [x] **FIX THE THEME**
 - [x] Keyboard shortcuts
+- [x] Backlog / someday list
+- [ ] **FIX THE AUTO COMPLETE**
 - [ ] Progress tracking (% complete)
 - [ ] Focus mode (hide everything except 1 task)
-- [ ] Backlog / someday list

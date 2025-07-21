@@ -1,9 +1,9 @@
 [package]
-name = "to-do-list"
+name = "UltraList"
 version = "0.1.0"
-description = "A Tauri App"
-authors = ["you"]
-edition = "2021"
+description = "A comprehensive task management desktop application featuring multiple productivity views (Kanban, Gantt, Eisenhower Matrix), advanced search with natural language processing, SQLite database integration, and Pomodoro timer. Built with React, TypeScript, and Tauri for cross-platform performance."
+authors = ["coolestcoder655"]
+edition = "2024"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
