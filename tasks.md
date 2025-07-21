@@ -5,7 +5,7 @@
 - [x] Gantt chart (for project planning)
 - [x] Eisenhower matrix / priority quadrant
 - [x] Pomodoro timer
-- [ ] **FIX UPDATING TASKS**
+- [x] **FIX UPDATING TASKS**
 - [ ] Keyboard shortcuts
 - [ ] Progress tracking (% complete)
 - [ ] Focus mode (hide everything except 1 task)
