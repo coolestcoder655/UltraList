@@ -38,7 +38,7 @@ const KeyboardShortcutsModal: React.FC<KeyboardShortcutsModalProps> = ({
         { key: "Alt + T", action: "Create new task" },
         { key: "Alt + E", action: "Edit most recent task" },
         { key: "Alt + D", action: "Delete most recent task" },
-        { key: "Alt + C", action: "Create task from natural language" },
+        { key: "Alt + C", action: "Switch to NLP (Natural Language) mode" },
       ],
     },
     {

@@ -21,6 +21,7 @@ import {
 import { initialTemplates } from "./data/initialData";
 import { logsService } from "./services/logsService";
 import { logTauriDiagnostic, testTauriConnection } from "./utils/tauriDebug";
+import { setSearchBarMode } from "./services/databaseService";
 import type { Task as TaskType, Subtask, ViewMode } from "./types";
 import "./App.css";
 
@@ -475,10 +476,26 @@ const App = (): JSX.Element => {
         searchInput.focus();
       }
     },
-    onCreateFromNaturalLanguage: () => {
-      // Show add form with natural language hint
-      setShowAddForm(true);
-      // Could enhance to focus on natural language mode
+    onSwitchToNLPMode: async () => {
+      // Switch search bar to NLP (create) mode
+      try {
+        await setSearchBarMode("create");
+
+        // Dispatch custom event to notify SearchBar components
+        window.dispatchEvent(new Event("searchBarModeChanged"));
+
+        // Focus the search input after switching
+        setTimeout(() => {
+          const searchInput = document.querySelector(
+            'input[placeholder*="Describe your task"]'
+          ) as HTMLInputElement;
+          if (searchInput) {
+            searchInput.focus();
+          }
+        }, 100);
+      } catch (error) {
+        console.error("Failed to switch to NLP mode:", error);
+      }
     },
     onRefreshView: () => {
       // Refresh current view data

@@ -74,7 +74,9 @@ export const useDatabase = () => {
       setProjects([]);
       setFolders([]);
       setTags([]);
-      setTheme("light");
+      // Use localStorage theme if available, otherwise default to light
+      const fallbackTheme = localStorage.getItem("ultralist_theme") || "light";
+      setTheme(fallbackTheme as "light" | "dark");
       console.error("Error loading data:", err);
     } finally {
       setLoading(false);
@@ -85,18 +87,26 @@ export const useDatabase = () => {
   const attemptDataLoad = useCallback(async () => {
     console.log("Loading data from database...");
 
-    const [tasksData, projectsData, foldersData, tagsData, themeData]: [
+    // Check if we're in Tauri context for theme loading
+    let themeData: string;
+    try {
+      themeData = await settingsService.getTheme();
+    } catch (error) {
+      // Fallback to localStorage if not in Tauri context
+      themeData = localStorage.getItem("ultralist_theme") || "light";
+      console.log("Using localStorage theme fallback:", themeData);
+    }
+
+    const [tasksData, projectsData, foldersData, tagsData]: [
       TaskWithDetails[],
       DatabaseProject[],
       DatabaseFolder[],
-      string[],
-      string
+      string[]
     ] = await Promise.all([
       taskService.getAllTasks(),
       projectService.getAllProjects(),
       folderService.getAllFolders(),
       tagService.getAllTags(),
-      settingsService.getTheme(),
     ]);
 
     console.log("Raw tasks data from database:", tasksData);
@@ -462,12 +472,10 @@ export const useDatabase = () => {
       const isInTauri = typeof window !== "undefined" && "__TAURI__" in window;
 
       if (!isInTauri) {
-        setError(
-          "Error accessing data - application must be run in desktop mode"
-        );
-        throw new Error(
-          "Database not available - not running in Tauri context"
-        );
+        // Fallback to localStorage when not in Tauri context
+        localStorage.setItem("ultralist_theme", newTheme);
+        setTheme(newTheme);
+        return;
       }
 
       await settingsService.setTheme(newTheme);

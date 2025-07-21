@@ -11,7 +11,7 @@ interface KeyboardShortcutsConfig {
   onSwitchToPomodoroView: () => void;
   onStartPomodoroSession: () => void;
   onOpenAdvancedSearch: () => void;
-  onCreateFromNaturalLanguage: () => void;
+  onSwitchToNLPMode: () => void;
   onRefreshView: () => void;
   onOpenTaskSidebar: () => void;
   onToggleCompletedTasks: () => void;
@@ -21,17 +21,21 @@ interface KeyboardShortcutsConfig {
 export const useKeyboardShortcuts = (config: KeyboardShortcutsConfig) => {
   const handleKeyDown = useCallback(
     (event: KeyboardEvent) => {
-      // Only trigger if Alt key is pressed and no input fields are focused
-      if (
-        !event.altKey ||
-        document.activeElement?.tagName === "INPUT" ||
-        document.activeElement?.tagName === "TEXTAREA" ||
-        (document.activeElement as HTMLElement)?.contentEditable === "true"
-      ) {
+      // Only trigger if Alt key is pressed
+      if (!event.altKey) {
         return;
       }
 
       const key = event.key.toLowerCase();
+      const isInputFocused =
+        document.activeElement?.tagName === "INPUT" ||
+        document.activeElement?.tagName === "TEXTAREA" ||
+        (document.activeElement as HTMLElement)?.contentEditable === "true";
+
+      // Allow Alt + C to work even when input is focused (for switching to NLP mode)
+      if (isInputFocused && key !== "c") {
+        return;
+      }
 
       switch (key) {
         case "t":
@@ -76,7 +80,7 @@ export const useKeyboardShortcuts = (config: KeyboardShortcutsConfig) => {
           break;
         case "c":
           event.preventDefault();
-          config.onCreateFromNaturalLanguage();
+          config.onSwitchToNLPMode();
           break;
         case "r":
           event.preventDefault();

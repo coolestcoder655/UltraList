@@ -26,6 +26,23 @@ export const useSearchBarMode = () => {
     };
 
     loadMode();
+
+    // Listen for external mode changes
+    const handleModeChange = async () => {
+      try {
+        const newMode = await getSearchBarMode();
+        setMode(newMode);
+      } catch (error) {
+        console.error("Failed to reload search bar mode:", error);
+      }
+    };
+
+    // Listen for custom event when mode changes externally
+    window.addEventListener("searchBarModeChanged", handleModeChange);
+
+    return () => {
+      window.removeEventListener("searchBarModeChanged", handleModeChange);
+    };
   }, []);
 
   // Toggle between modes
