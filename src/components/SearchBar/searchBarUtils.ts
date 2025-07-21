@@ -340,13 +340,6 @@ export const applyNlpSuggestionLogic = (
   const words = trimmedQuery.split(/\s+/).filter((word) => word.length > 0);
   const lastWord = words.length > 0 ? words[words.length - 1] : "";
 
-  // Debug logging - remove this later
-  console.log("applyNlpSuggestionLogic called:", {
-    searchQuery,
-    suggestion,
-    lastWord,
-  });
-
   // Handle compound priority suggestions specially
   if (
     suggestion === "high priority" ||
