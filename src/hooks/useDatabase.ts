@@ -315,39 +315,98 @@ export const useDatabase = () => {
       try {
         setError(null);
 
-        // Prepare the request object with proper type handling
-        const updateRequest: any = {
-          id: taskId,
-        };
+        // Check if we're in Tauri context and if taskService is available
+        const isInTauri =
+          typeof window !== "undefined" && "__TAURI__" in window;
 
-        // Only include fields that are actually being updated
-        if (updates.title !== undefined) updateRequest.title = updates.title;
-        if (updates.description !== undefined)
-          updateRequest.description = updates.description;
-        if (updates.dueDate !== undefined) {
-          updateRequest.due_date = updates.dueDate || null;
-        }
-        if (updates.priority !== undefined)
-          updateRequest.priority = updates.priority;
-        if (updates.projectId !== undefined) {
-          updateRequest.project_id = updates.projectId || null;
-        }
-        if (updates.completed !== undefined)
-          updateRequest.completed = updates.completed;
-        if (updates.subtasks !== undefined) {
-          updateRequest.subtasks = Array.isArray(updates.subtasks)
-            ? updates.subtasks.map((st: any) =>
-                typeof st === "string" ? st : st.text
-              )
-            : [];
-        }
-        if (updates.tags !== undefined) {
-          updateRequest.tags = Array.isArray(updates.tags) ? updates.tags : [];
+        console.log("=== UPDATE TASK DEBUG ===");
+        console.log("isInTauri:", isInTauri);
+        console.log("taskService:", taskService);
+        console.log("taskService.updateTask:", taskService.updateTask);
+
+        // Try to use Tauri backend, but fall back to demo mode if anything fails
+        if (isInTauri) {
+          try {
+            // Prepare the request object with proper type handling
+            const updateRequest: any = {
+              id: taskId,
+            };
+
+            // Only include fields that are actually being updated
+            if (updates.title !== undefined) updateRequest.title = updates.title;
+            if (updates.description !== undefined)
+              updateRequest.description = updates.description;
+            if (updates.dueDate !== undefined) {
+              updateRequest.due_date = updates.dueDate || null;
+            }
+            if (updates.priority !== undefined)
+              updateRequest.priority = updates.priority;
+            if (updates.projectId !== undefined) {
+              updateRequest.project_id = updates.projectId || null;
+            }
+            if (updates.completed !== undefined)
+              updateRequest.completed = updates.completed;
+            if (updates.subtasks !== undefined) {
+              updateRequest.subtasks = Array.isArray(updates.subtasks)
+                ? updates.subtasks.map((st: any) =>
+                    typeof st === "string" ? st : st.text
+                  )
+                : [];
+            }
+            if (updates.tags !== undefined) {
+              updateRequest.tags = Array.isArray(updates.tags) ? updates.tags : [];
+            }
+
+            console.log("Attempting Tauri updateTask with request:", updateRequest);
+            await taskService.updateTask(updateRequest);
+            console.log("Tauri updateTask successful, reloading data...");
+            await loadAllData(); // Reload all data to get the updated task
+            return;
+          } catch (tauriError) {
+            console.error("Tauri updateTask failed, falling back to demo mode:", tauriError);
+            // Fall through to demo mode handling
+          }
         }
 
-        await taskService.updateTask(updateRequest);
-        await loadAllData(); // Reload all data to get the updated task
+        console.log("Using demo mode for updateTask");
+        // Handle demo data locally (fallback for both non-Tauri and failed Tauri)
+        setTasks((prevTasks) =>
+          prevTasks.map((task) => {
+            if (task.id === taskId) {
+              const updatedTask = { ...task };
+              
+              // Update fields that are provided
+              if (updates.title !== undefined) updatedTask.title = updates.title;
+              if (updates.description !== undefined) updatedTask.description = updates.description;
+              if (updates.dueDate !== undefined) updatedTask.dueDate = updates.dueDate;
+              if (updates.priority !== undefined) updatedTask.priority = updates.priority;
+              if (updates.projectId !== undefined) updatedTask.projectId = updates.projectId;
+              if (updates.completed !== undefined) updatedTask.completed = updates.completed;
+              if (updates.tags !== undefined) updatedTask.tags = updates.tags;
+              if (updates.subtasks !== undefined) {
+                // Convert subtask strings to subtask objects
+                updatedTask.subtasks = Array.isArray(updates.subtasks)
+                  ? updates.subtasks.map((st: any, index: number) => {
+                      if (typeof st === "string") {
+                        return {
+                          id: `${taskId}-${index + 1}`,
+                          text: st,
+                          completed: false,
+                        };
+                      } else {
+                        return st;
+                      }
+                    })
+                  : updatedTask.subtasks;
+              }
+              
+              return updatedTask;
+            }
+            return task;
+          })
+        );
       } catch (err) {
+        console.error("Final updateTask error:", err);
         setError(err instanceof Error ? err.message : "Failed to update task");
         throw err;
       }
