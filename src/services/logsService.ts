@@ -25,12 +25,17 @@ export const logsService = {
         {
           timestamp: new Date().toISOString(),
           level: "WARN",
-          message: `Failed to retrieve Tauri logs: ${error instanceof Error ? error.message : String(error)}`,
+          message: `Failed to retrieve Tauri logs: ${
+            error instanceof Error ? error.message : String(error)
+          }`,
         },
         {
           timestamp: new Date().toISOString(),
           level: "INFO",
-          message: `Tauri context check: invoke available = ${typeof window !== 'undefined' && typeof (window as any).invoke === 'function'}`,
+          message: `Tauri context check: invoke available = ${
+            typeof window !== "undefined" &&
+            typeof (window as any).invoke === "function"
+          }`,
         },
       ];
     }
@@ -76,8 +81,8 @@ export const logsService = {
       // Fallback to alert with logs
       const logs = await this.getLogs();
       const logsText = logs
-        .map(log => `[${log.timestamp}] ${log.level}: ${log.message}`)
-        .join('\n');
+        .map((log) => `[${log.timestamp}] ${log.level}: ${log.message}`)
+        .join("\n");
       alert(`Application Logs:\n\n${logsText}`);
     }
   },
@@ -88,7 +93,9 @@ export const logsService = {
       .map(
         (log) => `
         <div class="log-entry log-${log.level.toLowerCase()}">
-          <span class="timestamp">${new Date(log.timestamp).toLocaleString()}</span>
+          <span class="timestamp">${new Date(
+            log.timestamp
+          ).toLocaleString()}</span>
           <span class="level">[${log.level}]</span>
           <span class="message">${log.message}</span>
         </div>

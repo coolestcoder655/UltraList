@@ -403,7 +403,9 @@ const App = (): JSX.Element => {
     console.clear();
     console.log("🔧 Running Enhanced Tauri Diagnostic v2...");
     console.log("📝 Changes made to fix false 'web mode' detection:");
-    console.log("  • More lenient context detection (invoke function = Tauri likely available)");
+    console.log(
+      "  • More lenient context detection (invoke function = Tauri likely available)"
+    );
     console.log("  • Optimistic command execution before waiting");
     console.log("  • Better error messages without assuming 'web mode'");
     console.log("  • Aggressive retry logic");
@@ -420,7 +422,9 @@ const App = (): JSX.Element => {
     if (connectionResult) {
       console.log("✅ All Tauri diagnostics passed!");
       console.log("🎉 The false 'web mode' detection should now be fixed!");
-      console.log("💡 If you're still seeing database errors, try refreshing the page");
+      console.log(
+        "💡 If you're still seeing database errors, try refreshing the page"
+      );
     } else {
       console.error("❌ Tauri diagnostic failed - this indicates a real issue");
       console.log("🔧 Advanced troubleshooting:");
@@ -753,57 +757,57 @@ const App = (): JSX.Element => {
       {/* Developer Debug Buttons - Show when there's an error OR dev mode is enabled */}
       {(error || devMode) && (
         <div className="fixed bottom-4 right-4 flex gap-2">
-        <button
-          onClick={handleTauriDiagnostic}
-          className={`px-4 py-2 rounded-lg shadow-lg transition-all duration-200 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 ${
-            isDarkMode
-              ? "bg-red-600 hover:bg-red-500 text-white focus:ring-red-500"
-              : "bg-red-500 hover:bg-red-400 text-white focus:ring-red-300"
-          }`}
-          title="Run Tauri context diagnostic (check console - F12)"
-        >
-          <svg
-            className="w-4 h-4 inline-block mr-2"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-            xmlns="http://www.w3.org/2000/svg"
+          <button
+            onClick={handleTauriDiagnostic}
+            className={`px-4 py-2 rounded-lg shadow-lg transition-all duration-200 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 ${
+              isDarkMode
+                ? "bg-red-600 hover:bg-red-500 text-white focus:ring-red-500"
+                : "bg-red-500 hover:bg-red-400 text-white focus:ring-red-300"
+            }`}
+            title="Run Tauri context diagnostic (check console - F12)"
           >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-            />
-          </svg>
-          Diagnose
-        </button>
-        <button
-          onClick={handleViewLogs}
-          className={`px-4 py-2 rounded-lg shadow-lg transition-all duration-200 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 ${
-            isDarkMode
-              ? "bg-gray-700 hover:bg-gray-600 text-gray-300 focus:ring-gray-500"
-              : "bg-white hover:bg-gray-50 text-gray-700 focus:ring-gray-300 border border-gray-200"
-          }`}
-          title="Open developer debug logs (for debugging and troubleshooting)"
-        >
-          <svg
-            className="w-4 h-4 inline-block mr-2"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-            xmlns="http://www.w3.org/2000/svg"
+            <svg
+              className="w-4 h-4 inline-block mr-2"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
+            Diagnose
+          </button>
+          <button
+            onClick={handleViewLogs}
+            className={`px-4 py-2 rounded-lg shadow-lg transition-all duration-200 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 ${
+              isDarkMode
+                ? "bg-gray-700 hover:bg-gray-600 text-gray-300 focus:ring-gray-500"
+                : "bg-white hover:bg-gray-50 text-gray-700 focus:ring-gray-300 border border-gray-200"
+            }`}
+            title="Open developer debug logs (for debugging and troubleshooting)"
           >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"
-            />
-          </svg>
-          Debug Logs
-        </button>
-      </div>
+            <svg
+              className="w-4 h-4 inline-block mr-2"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"
+              />
+            </svg>
+            Debug Logs
+          </button>
+        </div>
       )}
     </div>
   );

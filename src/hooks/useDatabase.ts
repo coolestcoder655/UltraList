@@ -34,30 +34,39 @@ export const useDatabase = () => {
       // Enhanced context checking with multiple approaches
       console.log("=== DATABASE LOAD DEBUG ===");
       console.log("invoke function available:", typeof invoke === "function");
-      console.log("window.__TAURI__ available:", typeof window !== "undefined" ? !!(window as any).__TAURI__ : "no window");
+      console.log(
+        "window.__TAURI__ available:",
+        typeof window !== "undefined"
+          ? !!(window as any).__TAURI__
+          : "no window"
+      );
 
       // Try optimistic approach first - if invoke is available, try it
       if (typeof invoke === "function") {
-        console.log("Invoke function available, attempting database operations...");
+        console.log(
+          "Invoke function available, attempting database operations..."
+        );
         try {
           await attemptDataLoad();
           return; // Success!
         } catch (error) {
-          console.log("Optimistic load failed, will wait for full initialization:", error);
+          console.log(
+            "Optimistic load failed, will wait for full initialization:",
+            error
+          );
         }
       }
 
       // If optimistic approach failed, wait for full Tauri initialization
       console.log("Waiting for complete Tauri initialization...");
       const initialized = await waitForTauriInitialization(5000);
-      
+
       if (!initialized) {
         throw new Error("Tauri initialization timeout");
       }
 
       // Try again after waiting
       await attemptDataLoad();
-      
     } catch (err) {
       console.error("Database error:", err);
       setError("Error accessing data - database connection failed");
@@ -98,7 +107,7 @@ export const useDatabase = () => {
 
     console.log("Converted tasks:", convertedTasks);
     console.log("First converted task subtasks:", convertedTasks[0]?.subtasks);
-    
+
     const convertedProjects: Project[] = projectsData.map(
       (p: DatabaseProject) => ({
         id: p.id,
@@ -108,22 +117,20 @@ export const useDatabase = () => {
         folderId: p.folder_id || undefined,
       })
     );
-    
-    const convertedFolders: Folder[] = foldersData.map(
-      (f: DatabaseFolder) => ({
-        id: f.id,
-        name: f.name,
-        color: f.color,
-        description: f.description || undefined,
-      })
-    );
+
+    const convertedFolders: Folder[] = foldersData.map((f: DatabaseFolder) => ({
+      id: f.id,
+      name: f.name,
+      color: f.color,
+      description: f.description || undefined,
+    }));
 
     setTasks(convertedTasks);
     setProjects(convertedProjects);
     setFolders(convertedFolders);
     setTags(tagsData);
     setTheme(themeData as "light" | "dark");
-    
+
     console.log("Database load completed successfully");
   }, []);
 
@@ -131,13 +138,13 @@ export const useDatabase = () => {
   useEffect(() => {
     const initializeDatabase = async () => {
       console.log("[DB] Starting database initialization...");
-      
+
       // Try immediate load first (optimistic approach)
       try {
         await loadAllData();
       } catch (error) {
         console.warn("[DB] Initial load failed, will retry...", error);
-        
+
         // If that fails, wait a bit and try again
         setTimeout(async () => {
           try {
@@ -161,8 +168,12 @@ export const useDatabase = () => {
 
         // Check if we're in Tauri context using centralized function
         if (!isInTauriContext()) {
-          setError("Error accessing data - application must be run in desktop mode");
-          throw new Error("Database not available - not running in Tauri context");
+          setError(
+            "Error accessing data - application must be run in desktop mode"
+          );
+          throw new Error(
+            "Database not available - not running in Tauri context"
+          );
         }
 
         const backendTask = convertToBackendTask(taskData);
@@ -192,8 +203,12 @@ export const useDatabase = () => {
 
         // Use centralized Tauri context check
         if (!isInTauriContext()) {
-          setError("Error accessing data - application must be run in desktop mode");
-          throw new Error("Database not available - not running in Tauri context");
+          setError(
+            "Error accessing data - application must be run in desktop mode"
+          );
+          throw new Error(
+            "Database not available - not running in Tauri context"
+          );
         }
 
         // Prepare the request object with proper type handling
@@ -246,8 +261,12 @@ export const useDatabase = () => {
 
         // Use centralized Tauri context check
         if (!isInTauriContext()) {
-          setError("Error accessing data - application must be run in desktop mode");
-          throw new Error("Database not available - not running in Tauri context");
+          setError(
+            "Error accessing data - application must be run in desktop mode"
+          );
+          throw new Error(
+            "Database not available - not running in Tauri context"
+          );
         }
 
         await taskService.deleteTask(taskId);
@@ -267,8 +286,12 @@ export const useDatabase = () => {
 
         // Use centralized Tauri context check
         if (!isInTauriContext()) {
-          setError("Error accessing data - application must be run in desktop mode");
-          throw new Error("Database not available - not running in Tauri context");
+          setError(
+            "Error accessing data - application must be run in desktop mode"
+          );
+          throw new Error(
+            "Database not available - not running in Tauri context"
+          );
         }
 
         await taskService.toggleTaskCompletion(taskId, completed);
@@ -288,8 +311,12 @@ export const useDatabase = () => {
 
         // Use centralized Tauri context check
         if (!isInTauriContext()) {
-          setError("Error accessing data - application must be run in desktop mode");
-          throw new Error("Database not available - not running in Tauri context");
+          setError(
+            "Error accessing data - application must be run in desktop mode"
+          );
+          throw new Error(
+            "Database not available - not running in Tauri context"
+          );
         }
 
         await taskService.toggleSubtaskCompletion(subtaskId, completed);
@@ -318,8 +345,12 @@ export const useDatabase = () => {
           typeof window !== "undefined" && "__TAURI__" in window;
 
         if (!isInTauri) {
-          setError("Error accessing data - application must be run in desktop mode");
-          throw new Error("Database not available - not running in Tauri context");
+          setError(
+            "Error accessing data - application must be run in desktop mode"
+          );
+          throw new Error(
+            "Database not available - not running in Tauri context"
+          );
         }
 
         await projectService.createProject(
@@ -347,8 +378,12 @@ export const useDatabase = () => {
           typeof window !== "undefined" && "__TAURI__" in window;
 
         if (!isInTauri) {
-          setError("Error accessing data - application must be run in desktop mode");
-          throw new Error("Database not available - not running in Tauri context");
+          setError(
+            "Error accessing data - application must be run in desktop mode"
+          );
+          throw new Error(
+            "Database not available - not running in Tauri context"
+          );
         }
 
         await projectService.deleteProject(projectId);
@@ -372,8 +407,12 @@ export const useDatabase = () => {
           typeof window !== "undefined" && "__TAURI__" in window;
 
         if (!isInTauri) {
-          setError("Error accessing data - application must be run in desktop mode");
-          throw new Error("Database not available - not running in Tauri context");
+          setError(
+            "Error accessing data - application must be run in desktop mode"
+          );
+          throw new Error(
+            "Database not available - not running in Tauri context"
+          );
         }
 
         await folderService.createFolder(name, color, description || null);
@@ -396,8 +435,12 @@ export const useDatabase = () => {
           typeof window !== "undefined" && "__TAURI__" in window;
 
         if (!isInTauri) {
-          setError("Error accessing data - application must be run in desktop mode");
-          throw new Error("Database not available - not running in Tauri context");
+          setError(
+            "Error accessing data - application must be run in desktop mode"
+          );
+          throw new Error(
+            "Database not available - not running in Tauri context"
+          );
         }
 
         await folderService.deleteFolder(folderId);
@@ -416,12 +459,15 @@ export const useDatabase = () => {
       setError(null);
 
       // Check if we're in Tauri context
-      const isInTauri =
-        typeof window !== "undefined" && "__TAURI__" in window;
+      const isInTauri = typeof window !== "undefined" && "__TAURI__" in window;
 
       if (!isInTauri) {
-        setError("Error accessing data - application must be run in desktop mode");
-        throw new Error("Database not available - not running in Tauri context");
+        setError(
+          "Error accessing data - application must be run in desktop mode"
+        );
+        throw new Error(
+          "Database not available - not running in Tauri context"
+        );
       }
 
       await settingsService.setTheme(newTheme);

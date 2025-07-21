@@ -1,5 +1,9 @@
 import { invoke } from "@tauri-apps/api/core";
-import { debugTauriContext, logTauriDiagnostic, waitForTauriInitialization } from "../utils/tauriDebug";
+import {
+  debugTauriContext,
+  logTauriDiagnostic,
+  waitForTauriInitialization,
+} from "../utils/tauriDebug";
 
 // Utility function to check if we're in Tauri context
 export const isInTauriContext = (): boolean => {
@@ -8,7 +12,7 @@ export const isInTauriContext = (): boolean => {
     if (typeof invoke === "function") {
       return true;
     }
-    
+
     // Fallback check: traditional __TAURI__ global check
     const diagnostic = debugTauriContext();
     return diagnostic.isInTauriContext;
@@ -19,7 +23,10 @@ export const isInTauriContext = (): boolean => {
 };
 
 // Enhanced invoke wrapper with Tauri initialization waiting
-export const safeInvoke = async <T = any>(command: string, args?: Record<string, any>): Promise<T> => {
+export const safeInvoke = async <T = any>(
+  command: string,
+  args?: Record<string, any>
+): Promise<T> => {
   try {
     // Optimistic approach: try the command first if invoke function is available
     if (typeof invoke === "function") {
@@ -30,25 +37,30 @@ export const safeInvoke = async <T = any>(command: string, args?: Record<string,
         return result;
       } catch (invokeError) {
         // If the command fails, it might be because Tauri isn't fully ready
-        console.log(`[DB] Direct invoke failed, checking Tauri initialization...`);
+        console.log(
+          `[DB] Direct invoke failed, checking Tauri initialization...`
+        );
       }
     }
-    
+
     // If direct invoke failed or isn't available, wait for full initialization
-    console.log(`[DB] Waiting for Tauri initialization before retrying ${command}...`);
+    console.log(
+      `[DB] Waiting for Tauri initialization before retrying ${command}...`
+    );
     const initialized = await waitForTauriInitialization(3000);
-    
+
     if (!initialized && !isInTauriContext()) {
       logTauriDiagnostic();
-      throw new Error(`NotInTauriContext: Cannot execute '${command}' - Tauri not available`);
+      throw new Error(
+        `NotInTauriContext: Cannot execute '${command}' - Tauri not available`
+      );
     }
-    
+
     // Retry the command after waiting
     console.log(`[DB] Retrying command after initialization: ${command}`, args);
     const result = await invoke<T>(command, args);
     console.log(`[DB] Command '${command}' completed successfully after retry`);
     return result;
-    
   } catch (error) {
     console.error(`[DB] Command '${command}' failed:`, error);
     throw error;
@@ -147,14 +159,20 @@ export const taskService = {
     taskId: string,
     completed: boolean
   ): Promise<void> {
-    return await safeInvoke<void>("toggle_task_completion", { taskId, completed });
+    return await safeInvoke<void>("toggle_task_completion", {
+      taskId,
+      completed,
+    });
   },
 
   async toggleSubtaskCompletion(
     subtaskId: string,
     completed: boolean
   ): Promise<void> {
-    return await safeInvoke<void>("toggle_subtask_completion", { subtaskId, completed });
+    return await safeInvoke<void>("toggle_subtask_completion", {
+      subtaskId,
+      completed,
+    });
   },
 };
 
@@ -190,7 +208,11 @@ export const folderService = {
     color: string,
     description: string | null
   ): Promise<void> {
-    return await safeInvoke<void>("create_folder", { name, color, description });
+    return await safeInvoke<void>("create_folder", {
+      name,
+      color,
+      description,
+    });
   },
 
   async getAllFolders(): Promise<DatabaseFolder[]> {

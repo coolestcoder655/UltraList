@@ -75,7 +75,7 @@ const Header: React.FC<HeaderProps> = ({
                 <Moon size={20} className="text-white" />
               )}
             </button>
-            
+
             <button
               onClick={onToggleDevMode}
               className={`p-2 rounded-lg transition-all duration-300 hover:scale-110 ${
@@ -84,14 +84,22 @@ const Header: React.FC<HeaderProps> = ({
                     ? "bg-green-600 hover:bg-green-500 border border-green-500 hover:border-green-400"
                     : "bg-green-500 hover:bg-green-400 border border-green-400 hover:border-green-300"
                   : isDarkMode
-                    ? "bg-gray-600 hover:bg-gray-500 border border-gray-500 hover:border-gray-400"
-                    : "bg-blue-500 hover:bg-blue-400 border border-blue-400 hover:border-blue-300"
+                  ? "bg-gray-600 hover:bg-gray-500 border border-gray-500 hover:border-gray-400"
+                  : "bg-blue-500 hover:bg-blue-400 border border-blue-400 hover:border-blue-300"
               }`}
-              title={`${devMode ? "Disable" : "Enable"} developer mode (shows debug buttons)`}
+              title={`${
+                devMode ? "Disable" : "Enable"
+              } developer mode (shows debug buttons)`}
             >
-              <Code 
-                size={20} 
-                className={devMode ? "text-white" : isDarkMode ? "text-gray-300" : "text-white"} 
+              <Code
+                size={20}
+                className={
+                  devMode
+                    ? "text-white"
+                    : isDarkMode
+                    ? "text-gray-300"
+                    : "text-white"
+                }
               />
             </button>
           </div>
