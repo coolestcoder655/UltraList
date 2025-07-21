@@ -74,7 +74,17 @@ export const taskService = {
   },
 
   async updateTask(request: UpdateTaskRequest): Promise<void> {
-    return await invoke("update_task", { request });
+    try {
+      console.log("taskService.updateTask called with:", request);
+      if (typeof invoke === 'undefined') {
+        throw new Error("Tauri invoke function not available");
+      }
+      await invoke("update_task", { request });
+      console.log("taskService.updateTask successful");
+    } catch (error) {
+      console.error("taskService.updateTask error:", error);
+      throw error;
+    }
   },
 
   async deleteTask(taskId: string): Promise<void> {
