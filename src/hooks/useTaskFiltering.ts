@@ -166,7 +166,12 @@ export const useTaskFiltering = () => {
 
     const sortedTasks: TaskType[] = [...filteredTasks].sort(
       (a: TaskType, b: TaskType) => {
-        // Default sort by due date
+        // First, sort by completion status - incomplete tasks first, completed tasks last
+        if (a.completed !== b.completed) {
+          return a.completed ? 1 : -1;
+        }
+        
+        // Then sort by due date for tasks with the same completion status
         if (!a.dueDate && !b.dueDate) return 0;
         if (!a.dueDate) return 1;
         if (!b.dueDate) return -1;
