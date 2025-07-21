@@ -44,6 +44,8 @@ pub fn run() {
             // Settings commands
             set_theme,
             get_theme,
+            set_mobile_mode,
+            get_mobile_mode,
             save_setting,
             get_setting,
             // SearchBar Mode commands

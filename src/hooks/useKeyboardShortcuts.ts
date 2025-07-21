@@ -5,12 +5,8 @@ interface KeyboardShortcutsConfig {
   onEditTask: () => void;
   onDeleteTask: () => void;
   onSwitchToListView: () => void;
-  onSwitchToKanbanView: () => void;
-  onSwitchToGanttView: () => void;
   onSwitchToEisenhowerView: () => void;
-  onSwitchToPomodoroView: () => void;
   onSwitchToFocusView: () => void;
-  onStartPomodoroSession: () => void;
   onSwitchToNLPMode: () => void;
   onRefreshView: () => void;
   onOpenTaskSidebar: () => void;
@@ -54,29 +50,13 @@ export const useKeyboardShortcuts = (config: KeyboardShortcutsConfig) => {
           event.preventDefault();
           config.onSwitchToListView();
           break;
-        case "k":
-          event.preventDefault();
-          config.onSwitchToKanbanView();
-          break;
-        case "g":
-          event.preventDefault();
-          config.onSwitchToGanttView();
-          break;
         case "m":
           event.preventDefault();
           config.onSwitchToEisenhowerView();
           break;
-        case "p":
-          event.preventDefault();
-          config.onSwitchToPomodoroView();
-          break;
         case "f":
           event.preventDefault();
           config.onSwitchToFocusView();
-          break;
-        case "s":
-          event.preventDefault();
-          config.onStartPomodoroSession();
           break;
         case "c":
           event.preventDefault();

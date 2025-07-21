@@ -13,6 +13,7 @@ interface TaskListProps {
   expandedTasks: Set<string>;
   priorityColors: PriorityColors;
   isDarkMode: boolean;
+  isMobileMode: boolean;
   projects: Project[];
   onToggleTask: (id: string) => void;
   onToggleSubtask: (taskId: string, subtaskId: string) => void;
@@ -33,6 +34,7 @@ const TaskList: React.FC<TaskListProps> = ({
   expandedTasks,
   priorityColors,
   isDarkMode,
+  isMobileMode,
   projects,
   onToggleTask,
   onToggleSubtask,
@@ -49,9 +51,8 @@ const TaskList: React.FC<TaskListProps> = ({
   if (tasks.length === 0) {
     return (
       <div
-        className={`text-center py-12 ${
-          isDarkMode ? "text-gray-400" : "text-gray-500"
-        }`}
+        className={`text-center py-12 ${isDarkMode ? "text-gray-400" : "text-gray-500"
+          }`}
       >
         <p className="text-lg">No tasks found</p>
         <p className="text-sm">Add a task to get started!</p>
@@ -69,6 +70,7 @@ const TaskList: React.FC<TaskListProps> = ({
           expandedTasks={expandedTasks}
           priorityColors={priorityColors}
           isDarkMode={isDarkMode}
+          isMobileMode={isMobileMode}
           projects={projects}
           onToggleTask={onToggleTask}
           onToggleSubtask={onToggleSubtask}

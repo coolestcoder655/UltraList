@@ -33,18 +33,6 @@ export interface Task {
   tags: string[];
 }
 
-export interface TaskTemplate {
-  id: number;
-  name: string;
-  description?: string;
-  defaultTitle: string;
-  defaultDescription: string;
-  defaultPriority: "low" | "medium" | "high";
-  defaultSubtasks: string[];
-  defaultProjectId?: number;
-  defaultTags: string[];
-}
-
 export interface SavedSearch {
   id: number;
   name: string;
@@ -105,18 +93,10 @@ export interface PriorityOrder {
 // View modes for different productivity views
 export type ViewMode =
   | "list"
-  | "kanban"
-  | "gantt"
-  | "eisenhower"
-  | "pomodoro"
   | "backlog"
   | "focus";
 
-// Kanban board status
-export type TaskStatus = "todo" | "in-progress" | "done";
-
 // Extended task interface for additional view-specific data
 export interface ExtendedTask extends Task {
-  status?: TaskStatus;
   startDate?: string;
 }

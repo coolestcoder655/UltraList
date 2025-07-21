@@ -478,4 +478,15 @@ impl Database {
     pub fn get_theme(&self) -> Result<String> {
         Ok(self.get_setting("theme")?.unwrap_or_else(|| "light".to_string()))
     }
+
+    // Mobile mode specific operations
+    pub fn set_mobile_mode(&self, enabled: bool) -> Result<()> {
+        let value = if enabled { "true" } else { "false" };
+        self.save_setting("mobile_mode", value)
+    }
+
+    pub fn get_mobile_mode(&self) -> Result<bool> {
+        let setting = self.get_setting("mobile_mode")?.unwrap_or_else(|| "false".to_string());
+        Ok(setting == "true")
+    }
 }
