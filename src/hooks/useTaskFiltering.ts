@@ -170,7 +170,7 @@ export const useTaskFiltering = () => {
         if (a.completed !== b.completed) {
           return a.completed ? 1 : -1;
         }
-        
+
         // Then sort by due date for tasks with the same completion status
         if (!a.dueDate && !b.dueDate) return 0;
         if (!a.dueDate) return 1;
