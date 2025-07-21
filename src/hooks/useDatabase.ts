@@ -25,6 +25,34 @@ export const useDatabase = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Helper function to preserve and restore scroll position
+  const withScrollPreservation = useCallback(
+    async (asyncOperation: () => Promise<void>) => {
+      // Preserve scroll position
+      const scrollY = window.scrollY;
+      const scrollElement = document.documentElement || document.body;
+      const scrollTop = scrollElement.scrollTop;
+
+      try {
+        await asyncOperation();
+
+        // Restore scroll position after the component re-renders
+        requestAnimationFrame(() => {
+          window.scrollTo(0, scrollY);
+          scrollElement.scrollTop = scrollTop;
+        });
+      } catch (error) {
+        // Still restore scroll position even if there's an error
+        requestAnimationFrame(() => {
+          window.scrollTo(0, scrollY);
+          scrollElement.scrollTop = scrollTop;
+        });
+        throw error;
+      }
+    },
+    []
+  );
+
   // Load all data from database
   const loadAllData = useCallback(async () => {
     try {
@@ -252,16 +280,19 @@ export const useDatabase = () => {
         }
 
         console.log("Attempting Tauri updateTask with request:", updateRequest);
-        await taskService.updateTask(updateRequest);
-        console.log("Tauri updateTask successful, reloading data...");
-        await loadAllData(); // Reload all data to get the updated task
+
+        await withScrollPreservation(async () => {
+          await taskService.updateTask(updateRequest);
+          console.log("Tauri updateTask successful, reloading data...");
+          await loadAllData(); // Reload all data to get the updated task
+        });
       } catch (err) {
         console.error("Final updateTask error:", err);
         setError("Error accessing data - failed to update task");
         throw err;
       }
     },
-    [loadAllData]
+    [withScrollPreservation, loadAllData]
   );
 
   const deleteTask = useCallback(
@@ -304,14 +335,16 @@ export const useDatabase = () => {
           );
         }
 
-        await taskService.toggleTaskCompletion(taskId, completed);
-        await loadAllData(); // Reload all data to get the updated task
+        await withScrollPreservation(async () => {
+          await taskService.toggleTaskCompletion(taskId, completed);
+          await loadAllData(); // Reload all data to get the updated task
+        });
       } catch (err) {
         setError("Error accessing data - failed to toggle task completion");
         throw err;
       }
     },
-    [loadAllData]
+    [withScrollPreservation, loadAllData]
   );
 
   const toggleSubtaskCompletion = useCallback(
@@ -329,14 +362,16 @@ export const useDatabase = () => {
           );
         }
 
-        await taskService.toggleSubtaskCompletion(subtaskId, completed);
-        await loadAllData(); // Reload all data to get the updated subtask
+        await withScrollPreservation(async () => {
+          await taskService.toggleSubtaskCompletion(subtaskId, completed);
+          await loadAllData(); // Reload all data to get the updated subtask
+        });
       } catch (err) {
         setError("Error accessing data - failed to toggle subtask completion");
         throw err;
       }
     },
-    [loadAllData]
+    [withScrollPreservation, loadAllData]
   );
 
   // Project operations
