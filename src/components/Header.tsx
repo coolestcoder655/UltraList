@@ -10,6 +10,7 @@ import {
   Grid3X3,
   Timer,
   Code,
+  Info,
 } from "lucide-react";
 import { ViewMode } from "../types";
 
@@ -22,6 +23,7 @@ interface HeaderProps {
   onShowProjectForm: () => void;
   viewMode: ViewMode;
   onViewModeChange: (mode: ViewMode) => void;
+  onShowKeyboardShortcuts: () => void;
 }
 
 const Header: React.FC<HeaderProps> = ({
@@ -33,6 +35,7 @@ const Header: React.FC<HeaderProps> = ({
   onShowProjectForm,
   viewMode,
   onViewModeChange,
+  onShowKeyboardShortcuts,
 }) => {
   const viewModeButtons = [
     { mode: "list" as ViewMode, icon: List, label: "List" },
@@ -60,6 +63,18 @@ const Header: React.FC<HeaderProps> = ({
             </p>
           </div>
           <div className="flex items-center gap-3">
+            <button
+              onClick={onShowKeyboardShortcuts}
+              className={`p-2 rounded-lg transition-all duration-300 hover:scale-110 ${
+                isDarkMode
+                  ? "bg-gray-600 hover:bg-gray-500 border border-gray-500 hover:border-gray-400"
+                  : "bg-blue-500 hover:bg-blue-400 border border-blue-400 hover:border-blue-300"
+              }`}
+              title="Keyboard shortcuts"
+            >
+              <Info size={20} className="text-white" />
+            </button>
+
             <button
               onClick={onToggleDarkMode}
               className={`p-2 rounded-lg transition-all duration-300 hover:scale-110 ${

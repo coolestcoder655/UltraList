@@ -6,3 +6,4 @@ export { useTaskForm } from "./useTaskForm";
 export { useTaskFiltering } from "./useTaskFiltering";
 export { useDatabase } from "./useDatabase";
 export { useSearchBarMode } from "./useSearchBarMode";
+export { useKeyboardShortcuts } from "./useKeyboardShortcuts";

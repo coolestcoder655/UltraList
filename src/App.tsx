@@ -9,12 +9,14 @@ import GanttView from "./components/GanttView";
 import EisenhowerView from "./components/EisenhowerView";
 import PomodoroView from "./components/PomodoroView";
 import ConfirmationModal from "./components/ConfirmationModal";
+import KeyboardShortcutsModal from "./components/KeyboardShortcutsModal";
 import {
   useTheme,
   useTemplates,
   useTaskForm,
   useTaskFiltering,
   useDatabase,
+  useKeyboardShortcuts,
 } from "./hooks";
 import { initialTemplates } from "./data/initialData";
 import { logsService } from "./services/logsService";
@@ -80,6 +82,8 @@ const App = (): JSX.Element => {
   // UI state
   const [showAddForm, setShowAddForm] = useState<boolean>(false);
   const [showProjectForm, setShowProjectForm] = useState<boolean>(false);
+  const [showKeyboardShortcuts, setShowKeyboardShortcuts] =
+    useState<boolean>(false);
   const [viewMode, setViewMode] = useState<ViewMode>("list");
   const [showDeleteConfirmation, setShowDeleteConfirmation] =
     useState<boolean>(false);
@@ -438,6 +442,59 @@ const App = (): JSX.Element => {
   // Get filtered and sorted tasks
   const sortedTasks = getFilteredAndSortedTasks(tasks, getProjectById);
 
+  // Keyboard shortcuts configuration
+  useKeyboardShortcuts({
+    onCreateTask: () => setShowAddForm(true),
+    onEditTask: () => {
+      // Edit first selected/available task - could be enhanced to work with actual selection
+      if (sortedTasks.length > 0) {
+        startEdit(sortedTasks[0]);
+      }
+    },
+    onDeleteTask: () => {
+      // Delete first selected/available task - could be enhanced to work with actual selection
+      if (sortedTasks.length > 0) {
+        handleDeleteTask(sortedTasks[0].id);
+      }
+    },
+    onSwitchToListView: () => setViewMode("list"),
+    onSwitchToKanbanView: () => setViewMode("kanban"),
+    onSwitchToGanttView: () => setViewMode("gantt"),
+    onSwitchToEisenhowerView: () => setViewMode("eisenhower"),
+    onSwitchToPomodoroView: () => setViewMode("pomodoro"),
+    onStartPomodoroSession: () => {
+      // Switch to pomodoro and start session - could be enhanced
+      setViewMode("pomodoro");
+    },
+    onOpenAdvancedSearch: () => {
+      // Focus search bar or show advanced search options
+      const searchInput = document.querySelector(
+        'input[type="search"]'
+      ) as HTMLInputElement;
+      if (searchInput) {
+        searchInput.focus();
+      }
+    },
+    onCreateFromNaturalLanguage: () => {
+      // Show add form with natural language hint
+      setShowAddForm(true);
+      // Could enhance to focus on natural language mode
+    },
+    onRefreshView: () => {
+      // Refresh current view data
+      window.location.reload();
+    },
+    onOpenTaskSidebar: () => {
+      // Could implement task sidebar functionality
+      console.log("Task sidebar not yet implemented");
+    },
+    onToggleCompletedTasks: () => {
+      // Could implement filter toggle for completed tasks
+      console.log("Toggle completed tasks not yet implemented");
+    },
+    onToggleTheme: () => toggleDarkMode(),
+  });
+
   // Show loading state while database is initializing
   if (loading) {
     return (
@@ -503,11 +560,7 @@ const App = (): JSX.Element => {
                 className={`block mt-2 text-xs ${
                   isDarkMode ? "text-gray-400" : "text-gray-500"
                 }`}
-              >
-                {isDarkMode
-                  ? "You are using UltraList in dark mode."
-                  : "You are using UltraList in light mode."}
-              </span>{" "}
+              ></span>{" "}
               with details about your environment and steps to reproduce the
               issue.
             </p>
@@ -584,6 +637,7 @@ const App = (): JSX.Element => {
             onShowProjectForm={() => setShowProjectForm(!showProjectForm)}
             viewMode={viewMode}
             onViewModeChange={setViewMode}
+            onShowKeyboardShortcuts={() => setShowKeyboardShortcuts(true)}
           />
 
           <div
@@ -809,6 +863,13 @@ const App = (): JSX.Element => {
           </button>
         </div>
       )}
+
+      {/* Keyboard Shortcuts Modal */}
+      <KeyboardShortcutsModal
+        isOpen={showKeyboardShortcuts}
+        onClose={() => setShowKeyboardShortcuts(false)}
+        isDarkMode={isDarkMode}
+      />
     </div>
   );
 };

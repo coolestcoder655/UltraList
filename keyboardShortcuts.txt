@@ -1,0 +1,46 @@
+<Shortcut>: Alt + T  
+<Action>: Create new task
+
+<Shortcut>: Alt + E  
+<Action>: Edit selected task
+
+<Shortcut>: Alt + D  
+<Action>: Delete selected task
+
+<Shortcut>: Alt + L  
+<Action>: Switch to List View
+
+<Shortcut>: Alt + K  
+<Action>: Switch to Kanban View
+
+<Shortcut>: Alt + G  
+<Action>: Switch to Gantt Chart View
+
+<Shortcut>: Alt + M  
+<Action>: Switch to Eisenhower Matrix
+
+<Shortcut>: Alt + P  
+<Action>: Open Pomodoro Timer
+
+<Shortcut>: Alt + S  
+<Action>: Start selected Pomodoro session
+
+<Shortcut>: Alt + F  
+<Action>: Open Advanced Search
+
+<Shortcut>: Alt + C  
+<Action>: Create task from natural language
+
+<Shortcut>: Alt + R  
+<Action>: Refresh current view
+
+<Shortcut>: Alt + B  
+<Action>: Open task sidebar / details
+
+<Shortcut>: Alt + H  
+<Action>: Show/hide completed tasks
+
+<Shortcut>: Alt + U  
+<Action>: Toggle theme (Dark/Light)
+
+
